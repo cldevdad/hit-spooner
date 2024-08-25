@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "HitSpooner",
+  "version": "1.0",
+  "description": "A dashboard for Mechanical Turk workers to filter and display HITs with enhanced design and features",
+  "permissions": ["storage", "activeTab", "scripting", "tabs"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://worker.mturk.com/hit-spooner",
+        "https://worker.mturk.com/projects*"
+      ],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  }
+}
