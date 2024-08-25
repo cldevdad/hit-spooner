@@ -218,8 +218,8 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
         set((state) => ({
           config: { ...state.config, updateInterval: interval },
         }));
-        clearIntervals(); // Clear existing intervals
-        get().startUpdateIntervals(); // Start new intervals with updated setting
+        clearIntervals();
+        get().startUpdateIntervals();
       },
     },
 
@@ -331,7 +331,7 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
     setHitsPage: async (page: number) => {
       const state = get();
       const { pageSize } = state.hits;
-      const filters = state.filters; // Get the filters from the state
+      const filters = state.filters;
 
       set({ hits: { ...state.hits, loading: true, currentPage: page } });
 
@@ -520,7 +520,7 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
     },
 
     startUpdateIntervals: () => {
-      clearIntervals(); // Clear any existing intervals
+      clearIntervals();
 
       const fetchAndUpdateHits = get().fetchAndUpdateHits;
       const fetchAndUpdateDashboard = get().fetchAndUpdateDashboard;
