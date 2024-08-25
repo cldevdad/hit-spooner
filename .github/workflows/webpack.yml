@@ -24,6 +24,8 @@ jobs:
 
     - name: Build
       run: |
+        corepack enable
+        pnpm --version
         yarn set version berry
         yarn
         yarn build
