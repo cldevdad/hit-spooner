@@ -1,5 +1,3 @@
-Here's the markdown source you can paste for your README.md:
-
 # Hit Spooner
 
 Hit Spooner is a Chrome extension designed to enhance your experience on Amazon Mechanical Turk (MTurk). The extension allows you to efficiently manage and interact with HITs (Human Intelligence Tasks) by providing features like fetching, filtering, auto-accept, dashboard and requester management.
