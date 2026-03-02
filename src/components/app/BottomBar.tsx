@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { FaPause, FaPlay } from "react-icons/fa";
 import styled from "@emotion/styled";
-import { Tooltip, Menu, UnstyledButton, Text } from "@mantine/core";
-import { IconMenu, IconSettings, IconChartBar, IconBan, IconDotsVertical } from "@tabler/icons-react";
+import { Tooltip, Menu, Text } from "@mantine/core";
+import { IconMenu, IconSettings, IconChartBar, IconBan } from "@tabler/icons-react";
 import SettingsModal from "../modals/SettingsModal";
 import DashboardModal from "../modals/DashboardModal";
 import BlockedRequestersModal from "../modals/BlockedRequestersModal";
 import { useStore } from "../../hooks";
 import HitSpoonerLogo from "./HitSpoonerLogo";
 import { keyframes, useTheme } from "@emotion/react";
-import packageJson from "../../../package.json"; // Import the version from package.json
+
 
 /**
  * Keyframes for alternating fade between two messages.
@@ -129,19 +129,8 @@ const PendingText = styled.div`
   color: ${(props) => props.theme.colors.primary[6]};
 `;
 
-const HourlyText = styled.div`
-  font-size: ${(props) => props.theme.fontSizes.xs};
-  color: ${(props) => props.theme.colors.primary[6]};
-`;
 
-/**
- * Styled text for the version information.
- */
-const VersionText = styled.div`
-  font-size: ${(props) => props.theme.fontSizes.xs};
-  color: ${(props) => props.theme.colors.primary[7]};
-  margin-top: ${(props) => props.theme.spacing.xxs};
-`;
+
 
 /**
  * Properties for the BottomBar component.
@@ -170,7 +159,7 @@ const BottomBar: React.FC<IBottomBarProps> = ({ minimal }) => {
   const isPaused = useStore((state) => state.paused);
   const togglePause = useStore((state) => state.togglePause);
   const queue = useStore((state) => state.queue);
-  
+
   const pendingEarnings = queue.reduce((sum, a) => sum + (a.project.monetary_reward?.amount_in_dollars || 0), 0);
 
   useEffect(() => {

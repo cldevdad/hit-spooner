@@ -2,7 +2,7 @@ import { IHitProject, IHitSearchFilter } from "@hit-spooner/api";
 import { fetchWithTimeout } from "./fetchWithTimeout";
 
 const FETCH_TIMEOUT_MS = 15000;
-const PAGE_DELAY_MS = 50;
+const PAGE_DELAY_MS = 30;
 
 export const fetchHITProjects = async (
   filters: IHitSearchFilter

@@ -31,7 +31,10 @@ interface SettingsModalProps {
 }
 
 const updateIntervalOptions = [
-  { value: "1000", label: "Fast (1s)" },
+  { value: "400", label: "Aggressive (0.4s)" },
+  { value: "600", label: "Very Fast (0.6s)" },
+  { value: "800", label: "Fast (0.8s)" },
+  { value: "1000", label: "Normal (1s)" },
   { value: "1500", label: "Balanced (1.5s)" },
   { value: "2000", label: "Safe (2s)" },
   { value: "3000", label: "Conservative (3s)" },

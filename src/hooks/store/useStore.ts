@@ -261,7 +261,7 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
 
       updateInterval: safeParseInt(
         localStorage.getItem(LocalStorageKeys.UpdateInterval),
-        1200
+        800
       ),
       setUpdateInterval: (interval: number) => {
         localStorage.setItem(
@@ -718,9 +718,13 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
 
       const processQueue = () => {
         if (taskQueue.length === 0) return;
-        const task = taskQueue.shift();
-        if (task) {
-          task();
+        // Process multiple tasks per cycle for faster hit catching
+        const tasksToProcess = Math.min(taskQueue.length, 4);
+        for (let i = 0; i < tasksToProcess; i++) {
+          const task = taskQueue.shift();
+          if (task) {
+            task();
+          }
         }
       };
 

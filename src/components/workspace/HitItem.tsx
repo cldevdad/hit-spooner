@@ -55,7 +55,7 @@ const HitItemWrapper = styled.div<{ unavailable?: boolean; isSelected?: boolean;
   border-radius: 8px;
   padding: ${(props) => props.theme.spacing.xxs};
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  animation: ${fadeIn} 0.5s ease-in-out forwards;
+  animation: ${fadeIn} 0.5s ease-in-out;
   opacity: ${(props) => (props.unavailable ? 0.6 : 1)};
   transition: transform 0.3s, box-shadow 0.3s, opacity 0.5s ease-in-out, border-color 0.2s;
   cursor: pointer;
@@ -162,7 +162,7 @@ const PrimaryRatingRow = styled.div`
   gap: ${(props) => props.theme.spacing.xxs};
 `;
 
-const DetailedRatingsContainer = styled.div<{ expanded: boolean }>`
+const DetailedRatingsContainerBase = styled.div<{ expanded: boolean }>`
   display: flex;
   gap: ${(props) => props.theme.spacing.xxs};
   flex-wrap: wrap;
@@ -172,8 +172,11 @@ const DetailedRatingsContainer = styled.div<{ expanded: boolean }>`
   opacity: ${(props) => props.expanded ? "1" : "0"};
   transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
 `;
+const DetailedRatingsContainer: React.FC<{ expanded: boolean; children?: React.ReactNode }> = ({ expanded, children }) => (
+  <DetailedRatingsContainerBase expanded={expanded}>{children}</DetailedRatingsContainerBase>
+);
 
-const ExpandToggle = styled.div<{ expanded: boolean }>`
+const ExpandToggleBase = styled.div<{ expanded: boolean }>`
   cursor: pointer;
   color: ${(props) => props.theme.colors.primary[7]};
   font-size: 12px;
@@ -191,6 +194,9 @@ const ExpandToggle = styled.div<{ expanded: boolean }>`
     transform: rotate(${(props) => props.expanded ? "180deg" : "0deg"});
   }
 `;
+const ExpandToggle: React.FC<{ expanded: boolean; onClick?: React.MouseEventHandler; children?: React.ReactNode }> = ({ expanded, onClick, children }) => (
+  <ExpandToggleBase expanded={expanded} onClick={onClick}>{children}</ExpandToggleBase>
+);
 
 const RatingBadge = styled.div<{ ratingClass?: keyof Theme["other"]["turkerView"] }>`
   font-size: ${(props) => props.theme.fontSizes.xs};
@@ -329,7 +335,6 @@ export const HitItem: React.FC<HitItemProps> = ({
   }, [hit, addOrUpdateHit, addHitToAccept, removeHitFromAccept]);
 
   const handleAcceptHit = useCallback(() => {
-    window.alert('Accept clicked!');
     if (hit.caller_meets_requirements) {
       setButtonVisible(false);
       playSound('chime');
