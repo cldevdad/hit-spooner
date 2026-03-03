@@ -16,6 +16,12 @@ const StyledPanelTitleBar = styled.div`
   width: 100%;
   min-height: 52px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: visible;
+`;
+
+const SliderWrapper = styled.div`
+  overflow: visible;
+  min-width: 140px;
 `;
 
 const StyledTitle = styled.div`
@@ -161,14 +167,16 @@ const PanelTitleBar: React.FC<IPanelTitleBarProps> = ({
         )}
       </StyledTitle>
       {columns !== undefined && setColumns !== undefined && (
-        <Slider
-          min={1}
-          max={5}
-          step={1}
-          value={columns}
-          onChange={setColumns}
-          styles={themedSliderStyles(theme)}
-        />
+        <SliderWrapper>
+          <Slider
+            min={1}
+            max={5}
+            step={1}
+            value={columns}
+            onChange={setColumns}
+            styles={themedSliderStyles(theme)}
+          />
+        </SliderWrapper>
       )}
       {setFilterText && (
         <FilterInputWrapper>
