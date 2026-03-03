@@ -9,12 +9,12 @@ const StyledPanelTitleBar = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 16px;
+  padding: 12px 16px;
   background: linear-gradient(180deg, ${(props) => props.theme.colors.primary[6]} 0%, ${(props) => props.theme.colors.primary[5]} 100%);
   border-bottom: 1px solid ${(props) => props.theme.colors.primary[4]};
   z-index: 1;
   width: 100%;
-  min-height: 52px;
+  min-height: 56px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   overflow: visible;
 `;

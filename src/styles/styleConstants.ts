@@ -195,6 +195,8 @@ export const themedSliderStyles = (theme: Theme): object => ({
   root: {
     width: "120px",
     minWidth: "120px",
+    marginTop: "8px",
+    marginBottom: "8px",
   },
   track: {
     backgroundColor: theme.colors.primary[3],
@@ -205,16 +207,12 @@ export const themedSliderStyles = (theme: Theme): object => ({
   thumb: {
     backgroundColor: theme.colors.primary[0],
     border: `2px solid ${theme.colors.primary[8]}`,
-    zIndex: 1000,
   },
   label: {
     backgroundColor: theme.colors.primary[7],
     color: theme.white,
-    zIndex: 10000,
-    padding: "4px 8px",
     fontSize: "12px",
-    transform: "translateY(-100%)",
-    marginTop: "-8px",
+    top: "24px",
   },
   markLabel: {
     fontSize: "10px",
