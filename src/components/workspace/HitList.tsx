@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useCallback } from "react";
 import styled from "@emotion/styled";
-import { Modal, Table, Text, Badge, Group } from "@mantine/core";
+import { Modal, Table, Text, Badge, Group, Select } from "@mantine/core";
 import HitItem from "./HitItem";
 import { IHitProject } from "@hit-spooner/api";
 import { useStore } from "../../hooks";
@@ -27,6 +27,29 @@ const GridContainer = styled.div<{ columns: number }>`
   ${({ theme }) => themedScrollbarStyles(theme)};
 `;
 
+const ToolbarContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: ${(props) => props.theme.colors.primary[0]};
+  border-bottom: 1px solid ${(props) => props.theme.colors.primary[2]};
+`;
+
+const ToolbarSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const ToolbarLabel = styled.span`
+  font-size: 11px;
+  font-weight: 600;
+  color: ${(props) => props.theme.colors.primary[7]};
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`;
+
 const KeyboardHintText = styled.div`
   position: fixed;
   bottom: 80px;
@@ -40,6 +63,56 @@ const KeyboardHintText = styled.div`
   opacity: 0.7;
   &:hover { opacity: 1; }
 `;
+
+export type SortOption = "default" | "reward_high" | "reward_low" | "duration_short" | "duration_long" | "requester_az" | "requester_za" | "newest";
+
+const sortOptions = [
+  { value: "default", label: "Default" },
+  { value: "reward_high", label: "Reward: High to Low" },
+  { value: "reward_low", label: "Reward: Low to High" },
+  { value: "duration_short", label: "Duration: Shortest" },
+  { value: "duration_long", label: "Duration: Longest" },
+  { value: "requester_az", label: "Requester: A-Z" },
+  { value: "requester_za", label: "Requester: Z-A" },
+  { value: "newest", label: "Newest First" },
+];
+
+const applySorting = (hits: IHitProject[], sortBy: SortOption): IHitProject[] => {
+  const sorted = [...hits];
+  
+  switch (sortBy) {
+    case "reward_high":
+      return sorted.sort((a, b) => 
+        (b.monetary_reward?.amount_in_dollars || 0) - (a.monetary_reward?.amount_in_dollars || 0)
+      );
+    case "reward_low":
+      return sorted.sort((a, b) => 
+        (a.monetary_reward?.amount_in_dollars || 0) - (b.monetary_reward?.amount_in_dollars || 0)
+      );
+    case "duration_short":
+      return sorted.sort((a, b) => 
+        (a.assignment_duration_in_seconds || 0) - (b.assignment_duration_in_seconds || 0)
+      );
+    case "duration_long":
+      return sorted.sort((a, b) => 
+        (b.assignment_duration_in_seconds || 0) - (a.assignment_duration_in_seconds || 0)
+      );
+    case "requester_az":
+      return sorted.sort((a, b) => 
+        (a.requester_name || "").localeCompare(b.requester_name || "")
+      );
+    case "requester_za":
+      return sorted.sort((a, b) => 
+        (b.requester_name || "").localeCompare(a.requester_name || "")
+      );
+    case "newest":
+      return sorted.sort((a, b) => 
+        new Date(b.last_updated_time || 0).getTime() - new Date(a.last_updated_time || 0).getTime()
+      );
+    default:
+      return sorted;
+  }
+};
 
 interface IHitListProps {
   hits: IHitProject[];
@@ -61,6 +134,7 @@ export const HitList: React.FC<IHitListProps> = ({
   const { blockedRequesters, acceptHit, paused } = useStore();
   const [filterText, setFilterText] = useState("");
   const [quickFilter, setQuickFilter] = useState("all");
+  const [sortBy, setSortBy] = useState<SortOption>("default");
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [previewHit, setPreviewHit] = useState<IHitProject | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -79,9 +153,10 @@ export const HitList: React.FC<IHitListProps> = ({
   const filteredHits = useMemo(
     () => {
       const textFiltered = filterHitProjects(hits, filterText, blockedRequesters);
-      return applyQuickFilter(textFiltered, quickFilter, blockedRequesters);
+      const quickFiltered = applyQuickFilter(textFiltered, quickFilter, blockedRequesters);
+      return applySorting(quickFiltered, sortBy);
     },
-    [hits, filterText, quickFilter, blockedRequesters]
+    [hits, filterText, quickFilter, sortBy, blockedRequesters]
   );
 
   const handleKeyDown = useCallback(
@@ -157,6 +232,23 @@ export const HitList: React.FC<IHitListProps> = ({
         setFilterText={setFilterText}
       />
       <QuickFilters onFilter={setQuickFilter} activeFilter={quickFilter} />
+      <ToolbarContainer>
+        <ToolbarSection>
+          <ToolbarLabel>Sort:</ToolbarLabel>
+          <Select
+            size="xs"
+            value={sortBy}
+            onChange={(v) => setSortBy((v as SortOption) || "default")}
+            data={sortOptions}
+            styles={{ input: { minWidth: 140, height: 28, fontSize: 12 } }}
+          />
+        </ToolbarSection>
+        <ToolbarSection>
+          <Text size="xs" c="dimmed">
+            {filteredHits.length} HITs
+          </Text>
+        </ToolbarSection>
+      </ToolbarContainer>
       <GridContainer columns={columns}>
         {filteredHits.map((hit: IHitProject, index: number) => (
           <HitItem
