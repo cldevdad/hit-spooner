@@ -9,12 +9,14 @@ import HitSpoonerLogo from "./HitSpoonerLogo";
 const TopBarContainer = styled.div`
   width: 100%;
   top: 0;
-  background-color: ${(props) => props.theme.other.topBarBackground};
+  background: linear-gradient(90deg, ${(props) => props.theme.other.topBarBackground} 0%, ${(props) => props.theme.colors.primary[5]} 100%);
   color: #ffffff;
   display: flex;
   justify-content: flex-start;
   align-items: center;
   z-index: 1000;
+  padding: 8px 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 `;
 
 /**

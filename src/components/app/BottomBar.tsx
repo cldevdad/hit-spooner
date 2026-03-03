@@ -32,14 +32,15 @@ const fadeAlternate = keyframes`
 const BottomBarContainer = styled.div<{ minimal?: boolean }>`
   bottom: 0;
   width: 100%;
-  background-color: ${(props) => props.theme.colors.primary[1]};
-  padding: ${(props) => props.theme.spacing.xxs};
-  border-top: 2px solid ${(props) => props.theme.colors.primary[0]};
+  background: linear-gradient(180deg, ${(props) => props.theme.colors.primary[2]} 0%, ${(props) => props.theme.colors.primary[1]} 100%);
+  padding: 8px 16px;
+  border-top: 1px solid ${(props) => props.theme.colors.primary[3]};
   display: flex;
   justify-content: space-between;
   align-items: center;
   z-index: 1000;
   position: relative;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 
   ${(props) =>
     props.minimal &&
@@ -66,17 +67,24 @@ const IconButton = styled.div<{ paused?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
   color: ${(props) =>
     props.paused
       ? props.theme.colors.secondary[7]
-      : props.theme.colors.primary[8]};
+      : props.theme.colors.primary[7]};
+  background: ${(props) => props.theme.colors.primary[0]};
 
   &:hover {
     transform: scale(1.1);
-    color: ${(props) => props.theme.colors.primary[8]};
+    background: ${(props) => props.theme.colors.primary[2]};
+    color: ${(props) => props.theme.colors.primary[9]};
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 `;
 
