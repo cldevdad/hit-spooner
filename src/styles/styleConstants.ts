@@ -205,13 +205,16 @@ export const themedSliderStyles = (theme: Theme): object => ({
   thumb: {
     backgroundColor: theme.colors.primary[0],
     border: `2px solid ${theme.colors.primary[8]}`,
+    zIndex: 1000,
   },
   label: {
     backgroundColor: theme.colors.primary[7],
     color: theme.white,
-    zIndex: 9999,
+    zIndex: 10000,
     padding: "4px 8px",
     fontSize: "12px",
+    transform: "translateY(-100%)",
+    marginTop: "-8px",
   },
   markLabel: {
     fontSize: "10px",

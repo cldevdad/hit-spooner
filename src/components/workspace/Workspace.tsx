@@ -15,9 +15,10 @@ const WorkspaceContainer = styled.div`
   background-color: ${(props) => props.theme.colors.primary[0]};
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   height: 100%;
   width: 100%;
+  overflow: visible;
+  position: relative;
 `;
 
 const HitListContainer = styled.div`
@@ -25,6 +26,12 @@ const HitListContainer = styled.div`
   overflow-y: auto;
   box-sizing: border-box;
   ${({ theme }) => themedScrollbarStyles(theme)};
+`;
+
+const TitleBarContainer = styled.div`
+  overflow: visible;
+  position: relative;
+  z-index: 100;
 `;
 
 const Workspace: React.FC = () => {
