@@ -656,7 +656,6 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
 
     acceptHit: (hit: IHitProject) => {
       return new Promise<void>((resolve) => {
-        playSound('chime');
         setTimeout(() => {
           debouncedAcceptHit(hit);
           resolve();
