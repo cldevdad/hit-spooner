@@ -40,7 +40,7 @@ export const useActivityData = () => {
           if (result.status === "fulfilled") {
             return result.value.data.results || [];
           } else {
-            console.warn("Failed to fetch data for a day:", result.reason);
+            // Silently handle failed fetches to avoid console output
             return [];
           }
         });

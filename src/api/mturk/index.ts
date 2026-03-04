@@ -7,5 +7,4 @@ export * from "./IHitAssignment";
 export * from "./IHitCompletion";
 export * from "./IHitProject";
 export * from "./IHitReward";
-export * from "./IHitTask";
 export * from "./SortOptions";

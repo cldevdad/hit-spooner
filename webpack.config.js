@@ -13,7 +13,7 @@ module.exports = {
     filename: "[name].js",
   },
   resolve: {
-    extensions: [".ts", ".tsx", ".js"],
+    extensions: [".ts", ".tsx", ".js", ".jsx"],
     alias: {
       // Add your alias here
       "@hit-spooner/api": path.resolve(__dirname, "src/api"),
@@ -23,7 +23,7 @@ module.exports = {
     rules: [
       {
         test: /\.tsx?$/,
-        use: "ts-loader",
+        use: "babel-loader",
         exclude: /node_modules/,
       },
       {

@@ -34,7 +34,7 @@ export const fetchHITProjects = async (
         credentials: "include",
         redirect: "error"
       }, FETCH_TIMEOUT_MS);
-      
+
       const response = await promise;
 
       if (!response.ok) {
@@ -42,8 +42,9 @@ export const fetchHITProjects = async (
           throw new Error("Redirected"); // Treat as session expired
         }
         if (response.status === 429) {
-          console.warn("[HitSpooner] Rate limited, waiting before retry...");
-          await delay(2000);
+          // Implement exponential backoff instead of fixed delay
+          const backoff = Math.min(2000 * 2 ** (allHITs.length), 30000);
+          await delay(backoff);
           continue;
         }
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -61,21 +62,21 @@ export const fetchHITProjects = async (
         if (data.results.length < parseInt(pageSize)) {
           break;
         }
-      } catch (parseError) {
-        console.error("[HitSpooner] Failed to parse page data:", parseError);
+
+        pageNumber += 1;
+        await delay(PAGE_DELAY_MS);
+      } catch (parseError: unknown) {
+        // Silently handle parse errors to avoid console output
         break;
       }
-
-      pageNumber += 1;
-      await delay(PAGE_DELAY_MS);
     }
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof Error && error.name === 'AbortError') {
-      console.warn("[HitSpooner] Fetch timed out");
+      // Silently handle timeout errors to avoid console output
     } else {
-      console.error("[HitSpooner] Error fetching HITs:", error instanceof Error ? error.message : "Unknown error");
+      // Re-throw the error to maintain original error propagation behavior
+      throw error;
     }
-    throw error;
   }
 
   return allHITs;

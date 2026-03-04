@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "@emotion/styled";
 import { Badge, Group } from "@mantine/core";
+import { IHitProject } from "@hit-spooner/api";
 
 const FilterContainer = styled.div`
   display: flex;
@@ -9,6 +10,7 @@ const FilterContainer = styled.div`
   padding: 8px 16px;
   background: ${(props) => props.theme.colors.primary[0]};
   border-bottom: 1px solid ${(props) => props.theme.colors.primary[2]};
+  flex-wrap: wrap;
 `;
 
 const FilterLabel = styled.span`
@@ -43,24 +45,29 @@ interface QuickFiltersProps {
   activeFilter?: string;
 }
 
+// Define filters as a constant outside the component to avoid recreation on each render
+const QUICK_FILTERS = [
+  { id: "all", label: "All", color: "#6b7280" },
+  { id: "high_pay", label: ">$0.50", color: "#22c55e" },
+  { id: "very_high_pay", label: ">$1.00", color: "#14b8a6" },
+  { id: "new_requester", label: "New", color: "#3b82f6" },
+  { id: "short", label: "<1 min", color: "#f97316" },
+  { id: "short_5m", label: "<5 min", color: "#f59e0b" },
+  { id: "short_10m", label: "<10 min", color: "#eab308" },
+  { id: "short_30m", label: "<30m dur", color: "#84cc16" },
+  { id: "masters", label: "Masters", color: "#8b5cf6" },
+  { id: "pending_qual", label: "Pend Qual", color: "#ec4899" },
+  { id: "recent_30m", label: "Fresh", color: "#06b6d4" },
+] as const;
+
+export type QuickFilterId = typeof QUICK_FILTERS[number]["id"];
+
 export const QuickFilters: React.FC<QuickFiltersProps> = ({ onFilter, activeFilter }) => {
-  const filters = [
-    { id: "all", label: "All", color: "#6b7280" },
-    { id: "high_pay", label: ">$0.50", color: "#22c55e" },
-    { id: "very_high_pay", label: ">$1.00", color: "#14b8a6" },
-    { id: "new_requester", label: "New", color: "#3b82f6" },
-    { id: "short", label: "<1 min", color: "#f97316" },
-    { id: "masters", label: "Masters", color: "#8b5cf6" },
-  ];
-
-  const colorMap: Record<string, string> = {};
-  filters.forEach(f => colorMap[f.id] = f.color);
-
   return (
     <FilterContainer>
-      <FilterLabel>Quick Filters:</FilterLabel>
+      <FilterLabel>Quick:</FilterLabel>
       <Group gap={6}>
-        {filters.map((filter) => (
+        {QUICK_FILTERS.map((filter) => (
           <FilterBadge
             key={filter.id}
             color={filter.color}
@@ -76,10 +83,10 @@ export const QuickFilters: React.FC<QuickFiltersProps> = ({ onFilter, activeFilt
 };
 
 export const applyQuickFilter = (
-  hits: any[],
+  hits: IHitProject[],
   filterId: string,
   blockedRequesters: string[]
-): any[] => {
+): IHitProject[] => {
   return hits.filter((hit) => {
     if (blockedRequesters.includes(hit.requester_id)) return false;
 
@@ -94,8 +101,20 @@ export const applyQuickFilter = (
         return hit.requester_name && hit.requester_name.includes("NEW");
       case "short":
         return (hit.assignment_duration_in_seconds || 0) < 60;
+      case "short_5m":
+        return (hit.assignment_duration_in_seconds || 0) < 300;
+      case "short_10m":
+        return (hit.assignment_duration_in_seconds || 0) < 600;
+      case "short_30m":
+        return (hit.assignment_duration_in_seconds || 0) < 1800;
       case "masters":
-        return hit.qualifications?.master_required === true;
+        return hit.qualifications?.some(q => q.qualification_type?.name?.toLowerCase().includes("master")) === true;
+      case "pending_qual":
+        return !hit.caller_meets_requirements;
+      case "recent_30m":
+        const hitTime = new Date(hit.last_updated_time || hit.creation_time || 0).getTime();
+        const thirtyMinAgo = Date.now() - (30 * 60 * 1000);
+        return hitTime > thirtyMinAgo;
       default:
         return true;
     }

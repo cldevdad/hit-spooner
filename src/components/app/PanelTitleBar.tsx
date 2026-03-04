@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import styled from "@emotion/styled";
-import { Slider, TextInput, Tooltip } from "@mantine/core";
+import { Slider, TextInput, Tooltip, ActionIcon } from "@mantine/core";
 import { useTheme } from "@emotion/react";
-import { IconX, IconInfoCircle } from "@tabler/icons-react";
+import { IconX, IconInfoCircle, IconDownload } from "@tabler/icons-react";
 import { themedSliderStyles } from "../../styles";
 
 const StyledPanelTitleBar = styled.div`
@@ -78,6 +78,7 @@ interface IPanelTitleBarProps {
   totalEarningsPerHour?: number;
   averageRewardPerHit?: number;
   totalDuration?: number;
+  onExport?: () => void;
 }
 
 const PanelTitleBar: React.FC<IPanelTitleBarProps> = ({
@@ -90,6 +91,7 @@ const PanelTitleBar: React.FC<IPanelTitleBarProps> = ({
   totalEarningsPerHour,
   averageRewardPerHit,
   totalDuration,
+  onExport,
 }) => {
   const theme = useTheme();
   const [statsExpanded, setStatsExpanded] = useState(false);
@@ -225,6 +227,18 @@ const PanelTitleBar: React.FC<IPanelTitleBarProps> = ({
             <IconX size={16} />
           </IconWrapper>
         </FilterInputWrapper>
+      )}
+      {onExport && (
+        <Tooltip label="Export queue to CSV" position="bottom">
+          <ActionIcon
+            variant="light"
+            size="lg"
+            onClick={onExport}
+            style={{ marginLeft: 8 }}
+          >
+            <IconDownload size={16} />
+          </ActionIcon>
+        </Tooltip>
       )}
     </StyledPanelTitleBar>
   );

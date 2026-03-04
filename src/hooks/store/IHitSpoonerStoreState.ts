@@ -172,4 +172,14 @@ export interface IHitSpoonerStoreState {
    * Function to purge old HITs from the database.
    */
   purgeOldHits: () => Promise<void>;
+
+  /**
+   * Function to reorder queue items.
+   */
+  reorderQueue: (fromIndex: number, toIndex: number) => void;
+
+  /**
+   * Function to prioritize a queue item (move to front).
+   */
+  prioritizeQueueItem: (index: number) => void;
 }

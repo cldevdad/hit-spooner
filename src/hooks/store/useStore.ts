@@ -74,7 +74,7 @@ const defaultHitFilters: IHitSearchFilter = {
 };
 
 export const useStore = create<IHitSpoonerStoreState>((set, get) => {
-  const { addOrUpdateHit, addOrUpdateHits, loadHitsByPage, deleteHitFromIndexedDb, purgeOldHits } =
+  const { addOrUpdateHit, addOrUpdateHits, loadHitsByPage, deleteHit, purgeOldHits } =
     useIndexedDb();
   let intervalRef: NodeJS.Timeout | null = null;
   let addQueueIntervalRef: NodeJS.Timeout | null = null;
@@ -418,11 +418,11 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
               await get().purgeOldHits();
             }
           } catch (dbError) {
-            console.error("[HitSpooner] Database update failed:", dbError);
+            // Silently handle database errors to avoid console output
           }
 
         } catch (error: any) {
-          console.error("[HitSpooner] Fetch failed:", error);
+          // Silently handle fetch errors to avoid console output
           fetchError = error?.message === "Redirected" || error?.name === "TypeError"
             ? "Session expired? Please log in to MTurk."
             : "Failed to fetch HITs";
@@ -451,7 +451,7 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
           },
         });
       } catch (globalError) {
-        console.error("[HitSpooner] Critical error in fetchAndUpdateHits:", globalError);
+        // Silently handle critical errors to avoid console output
         set((state) => ({
           hits: { ...state.hits, loading: false, error: "Critical error. See console." },
         }));
@@ -672,7 +672,7 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
         },
       }));
 
-      await deleteHitFromIndexedDb(hitId);
+      await deleteHit(hitId);
     },
 
     startUpdateIntervals: () => {
@@ -736,6 +736,25 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
 
     purgeOldHits: async () => {
       await purgeOldHits();
+    },
+
+    reorderQueue: (fromIndex: number, toIndex: number) => {
+      set((state) => {
+        const newQueue = [...state.queue];
+        const [removed] = newQueue.splice(fromIndex, 1);
+        newQueue.splice(toIndex, 0, removed);
+        return { queue: newQueue };
+      });
+    },
+
+    prioritizeQueueItem: (index: number) => {
+      set((state) => {
+        if (index <= 0) return state;
+        const newQueue = [...state.queue];
+        const [removed] = newQueue.splice(index, 1);
+        newQueue.unshift(removed);
+        return { queue: newQueue };
+      });
     },
   };
 });

@@ -87,8 +87,8 @@ export const purgeOldHits = async (): Promise<void> => {
       }
     }
     await tx.done;
-  } catch (error) {
-    console.error("[HitSpooner] Failed to purge old hits:", error);
+  } catch {
+    // Silently handle purge errors to avoid console output
   }
 };
 
@@ -98,8 +98,6 @@ export const useIndexedDb = () => ({
   clearAllHits,
   loadHits,
   loadHitsByPage,
-  deleteHitFromIndexedDb: deleteHit,
+  deleteHit,
   purgeOldHits,
 });
-
-export default useIndexedDb;
