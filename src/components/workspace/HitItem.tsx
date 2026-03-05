@@ -56,6 +56,7 @@ const HitItemWrapper = styled.div<{ unavailable?: boolean; isSelected?: boolean;
   padding: ${(props) => props.theme.spacing.xxs};
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   animation: ${fadeIn} 0.5s ease-in-out;
+  animation-fill-mode: both;
   opacity: ${(props) => (props.unavailable ? 0.6 : 1)};
   transition: transform 0.3s, box-shadow 0.3s, opacity 0.5s ease-in-out, border-color 0.2s;
   cursor: pointer;

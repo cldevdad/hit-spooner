@@ -30,6 +30,7 @@ const LogoContainer = styled.div`
   justify-content: center;
   padding: 2px;
   animation: ${fadeIn} 1s ease-in-out, ${pop} 1s ease-in-out;
+  animation-fill-mode: both;
 `;
 
 const Text = styled.div`

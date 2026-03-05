@@ -97,6 +97,7 @@ const PauseText = styled.div`
   display: flex;
   align-items: center;
   animation: ${fadeAlternate} 6s infinite;
+  animation-fill-mode: both;
   padding-top: 10%;
 `;
 
