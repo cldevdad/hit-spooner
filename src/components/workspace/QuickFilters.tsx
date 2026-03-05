@@ -3,7 +3,7 @@ import styled from "@emotion/styled";
 import { Badge, Group } from "@mantine/core";
 import { IHitProject } from "@hit-spooner/api";
 
-const FilterContainer = styled.div`
+export const FilterContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
@@ -13,7 +13,7 @@ const FilterContainer = styled.div`
   flex-wrap: wrap;
 `;
 
-const FilterLabel = styled.span`
+export const FilterLabel = styled.span`
   font-size: 12px;
   font-weight: 600;
   color: ${(props) => props.theme.colors.primary[7]};
@@ -21,7 +21,7 @@ const FilterLabel = styled.span`
   letter-spacing: 0.5px;
 `;
 
-const FilterBadge = styled.span<{ color: string; active: boolean }>`
+export const FilterBadge = styled.span<{ color: string; active: boolean }>`
   display: inline-flex;
   align-items: center;
   padding: 4px 10px;
@@ -46,7 +46,7 @@ interface QuickFiltersProps {
 }
 
 // Define filters as a constant outside the component to avoid recreation on each render
-const QUICK_FILTERS = [
+export const QUICK_FILTERS = [
   { id: "all", label: "All", color: "#6b7280" },
   { id: "high_pay", label: ">$0.50", color: "#22c55e" },
   { id: "very_high_pay", label: ">$1.00", color: "#14b8a6" },

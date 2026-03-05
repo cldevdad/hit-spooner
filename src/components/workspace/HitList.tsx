@@ -7,7 +7,7 @@ import { useStore } from "../../hooks";
 import { themedScrollbarStyles } from "../../styles";
 import PanelTitleBar from "../app/PanelTitleBar";
 import { filterHitProjects } from "../../utils";
-import { QuickFilters, applyQuickFilter } from "./QuickFilters";
+import { QuickFilters, applyQuickFilter, QUICK_FILTERS, FilterLabel, FilterBadge } from "./QuickFilters";
 import { HitPreviewModal } from "./HitPreviewModal";
 
 const HitListContainer = styled.div`
@@ -231,8 +231,22 @@ export const HitList: React.FC<IHitListProps> = ({
         filterText={filterText}
         setFilterText={setFilterText}
       />
-      <QuickFilters onFilter={setQuickFilter} activeFilter={quickFilter} />
       <ToolbarContainer>
+        <ToolbarSection>
+          <FilterLabel>Quick:</FilterLabel>
+          <Group gap={6}>
+            {QUICK_FILTERS.map((filter: typeof QUICK_FILTERS[number]) => (
+              <FilterBadge
+                key={filter.id}
+                color={filter.color}
+                active={quickFilter === filter.id}
+                onClick={() => setQuickFilter(filter.id)}
+              >
+                {filter.label}
+              </FilterBadge>
+            ))}
+          </Group>
+        </ToolbarSection>
         <ToolbarSection>
           <ToolbarLabel>Sort:</ToolbarLabel>
           <Select
