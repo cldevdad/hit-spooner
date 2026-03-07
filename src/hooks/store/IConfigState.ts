@@ -105,4 +105,14 @@ export interface IConfigState {
    * Function to set the sound type
    */
   setSoundType: (soundType: string) => void;
+
+  /**
+   * Whether popup notifications are enabled
+   */
+  notificationEnabled: boolean;
+
+  /**
+   * Function to toggle popup notifications
+   */
+  setNotificationEnabled: (enabled: boolean) => void;
 }

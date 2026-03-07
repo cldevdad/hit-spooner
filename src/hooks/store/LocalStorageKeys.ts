@@ -12,6 +12,7 @@ export enum LocalStorageKeys {
   RequesterModalColumns = "HitSpooner_RequesterModalColumns",
   SoundEnabled = "HitSpooner_SoundEnabled",
   SoundType = "HitSpooner_SoundType",
+  NotificationEnabled = "HitSpooner_NotificationEnabled",
   SpeechVoiceURI = "HitSpooner_SpeechVoiceURI",
   SpeechRate = "HitSpooner_SpeechRate",
 }

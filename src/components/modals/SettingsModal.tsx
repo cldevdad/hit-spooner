@@ -109,7 +109,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           />
         </FormSection>
 
-        <FormSection title="Sound Settings">
+        <FormSection title="Sound & Notification Settings">
           <Group
             align="apart"
             style={{
@@ -121,6 +121,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
               name="soundEnabled"
               checked={config.soundEnabled}
               onChange={() => config.setSoundEnabled(!config.soundEnabled)}
+            />
+          </Group>
+          
+          <Group
+            align="apart"
+            style={{
+              paddingTop: "10px",
+            }}
+          >
+            <CustomIconCheckbox
+              label="Enable Popup Notifications"
+              name="notificationEnabled"
+              checked={config.notificationEnabled}
+              onChange={() => config.setNotificationEnabled(!config.notificationEnabled)}
             />
           </Group>
           

@@ -291,6 +291,15 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
           config: { ...state.config, soundType },
         }));
       },
+
+      notificationEnabled:
+        localStorage.getItem(LocalStorageKeys.NotificationEnabled) !== "false",
+      setNotificationEnabled: (enabled: boolean) => {
+        localStorage.setItem(LocalStorageKeys.NotificationEnabled, String(enabled));
+        set((state) => ({
+          config: { ...state.config, notificationEnabled: enabled },
+        }));
+      },
     },
 
     setFilters: (newFilters: IHitSearchFilter) => {
@@ -487,6 +496,9 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
     },
 
     fetchAndUpdateHitsQueue: debounce(async () => {
+      const currentQueue = get().queue;
+      const currentQueueIds = new Set(currentQueue.map((q: IHitAssignment) => q.assignment_id));
+
       set({ loadingQueue: true });
 
       try {
@@ -507,11 +519,28 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
 
         const data = await response.json();
 
-        // Successfully fetched queue - user is logged in
         get().setLoggedIn(true);
 
+        const newQueue = data.tasks || [];
+        
+        if (get().config.notificationEnabled && currentQueue.length > 0) {
+          const newItems = newQueue.filter(
+            (item: IHitAssignment) => !currentQueueIds.has(item.assignment_id)
+          );
+          
+          for (const item of newItems) {
+            const reward = item.project?.monetary_reward?.amount_in_dollars?.toFixed(2) || "0.00";
+            notifications.show({
+              title: "HIT Accepted!",
+              message: `${item.project?.requester_name}: $${reward}`,
+              color: "green",
+              autoClose: 3000,
+            });
+          }
+        }
+
         set({
-          queue: data.tasks || [],
+          queue: newQueue,
           loadingQueue: false,
         });
       } catch (error) {
