@@ -12,7 +12,7 @@ import {
   newsTheme,
   blueTheme,
 } from "../../styles/themes";
-import { fetchDashboardData, fetchHITProjects, announceHitCaught, SoundType, playSound, safeParseInt } from "../../utils";
+import { fetchDashboardData, fetchHITProjects, announceHitCaught, announceHitWithNotification, SoundType, playSound, safeParseInt } from "../../utils";
 import { useIndexedDb, loadHits as loadHitsFromDb } from "../useIndexedDb";
 import { IHitSpoonerStoreState } from "./IHitSpoonerStoreState";
 import { LocalStorageKeys } from "./LocalStorageKeys";
@@ -90,7 +90,35 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
     }
   };
 
-  const debouncedAcceptHit = debounce(async (hit: IHitProject) => {
+  // Track previously seen hit IDs to detect new ones
+  let previouslySeenHitIds = new Set<string>(
+    JSON.parse(localStorage.getItem('previouslySeenHitIds') || '[]')
+  );
+
+  // Function to announce new hits with notifications
+  const announceNewHit = (hit: IHitProject) => {
+    if (get().config.notificationEnabled) {
+      const reward = hit.monetary_reward?.amount_in_dollars?.toFixed(2) || "0.00";
+      const requesterName = hit.requester_name || "Unknown Requester";
+      
+      // Play sound if enabled
+      if (get().config.soundEnabled) {
+        announceHitWithNotification(get().config.soundType as SoundType, requesterName, reward);
+      }
+      
+      // Show browser notification
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("New HIT Available!", {
+          body: `${requesterName}: $${reward}`,
+          icon: "/icons/icon128.png",
+          badge: "/icons/icon48.png",
+          tag: `hit-${hit.hit_set_id}`,
+          requireInteraction: false,
+          silent: false
+        });
+      }
+    }
+  };const debouncedAcceptHit = debounce(async (hit: IHitProject) => {
     if (get().paused) return;
 
     try {
@@ -114,6 +142,10 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
         get().setLoggedIn(true);
 
       if (data?.state === "Assigned") {
+        const reward = hit.monetary_reward?.amount_in_dollars?.toFixed(2) || "0.00";
+        if (get().config.soundEnabled) {
+          announceHitWithNotification(get().config.soundType as SoundType, hit.requester_name, reward);
+        }
         hit.unavailable = true;
         await addOrUpdateHit(hit);
         get().removeHitFromAccept(hit.hit_set_id);
@@ -395,6 +427,9 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
             (hit: IHitProject) => !blockedRequestersSet.has(hit.requester_id)
           );
 
+          // Track new hits for notifications
+          const processedHits = new Set<string>(JSON.parse(localStorage.getItem('processedHits') || '[]'));
+          
           for (const hit of filteredHits) {
             const cachedHit = hitMap.get(hit.hit_set_id);
             hit.unavailable = false;
@@ -403,9 +438,18 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
             }
             if (hit.scoop && !hit.unavailable && !hitsToAcceptSet.has(hit.hit_set_id)) {
               get().addHitToAccept(hit);
+              // Only notify if this hit hasn't been processed before
+              if (!processedHits.has(hit.hit_set_id)) {
+                processedHits.add(hit.hit_set_id);
+                // Don't announce new hits here - only announce when they're accepted to queue
+                // announceNewHit(hit);
+              }
             }
             hitMap.set(hit.hit_set_id, hit);
           }
+            
+          // Save processed hits to localStorage
+          localStorage.setItem('processedHits', JSON.stringify(Array.from(processedHits)));
 
           for (const [hitId, cachedHit] of hitMap) {
             if (!filteredHits.some((hit: IHitProject) => hit.hit_set_id === hitId)) {
@@ -431,10 +475,18 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
           }
 
         } catch (error: any) {
-          // Silently handle fetch errors to avoid console output
-          fetchError = error?.message === "Redirected" || error?.name === "TypeError"
-            ? "Session expired? Please log in to MTurk."
-            : "Failed to fetch HITs";
+          // Enhanced error handling for better reliability
+          if (error?.message?.includes("Max retries")) {
+            fetchError = "Server temporarily unavailable. Retrying...";
+          } else if (error?.message?.includes("Session expired")) {
+            fetchError = "Session expired. Please log in to MTurk.";
+          } else if (error?.message?.includes("Rate limited")) {
+            fetchError = "Rate limited. Please wait a moment.";
+          } else {
+            fetchError = error?.message === "Redirected" || error?.name === "TypeError"
+              ? "Session expired? Please log in to MTurk."
+              : "Failed to fetch HITs";
+          }
         }
 
         const allHits = Array.from(hitMap.values());
@@ -523,16 +575,51 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
 
         const newQueue = data.tasks || [];
         
-        if (get().config.notificationEnabled && currentQueue.length > 0) {
+        if (get().config.notificationEnabled) {
           const newItems = newQueue.filter(
             (item: IHitAssignment) => !currentQueueIds.has(item.assignment_id)
           );
           
           for (const item of newItems) {
             const reward = item.project?.monetary_reward?.amount_in_dollars?.toFixed(2) || "0.00";
+            const requesterName = item.project?.requester_name || "Unknown Requester";
+            
+            // Play sound IMMEDIATELY for instant feedback - no delays
+            if (get().config.soundEnabled) {
+              try {
+                // Use the configured sound type or default to chime
+                const soundType = (get().config.soundType as SoundType) || "chime";
+                
+                // Force immediate audio context creation and playback
+                const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+                if (audioContext.state === "suspended") {
+                  audioContext.resume();
+                }
+                
+                // Play sound directly without debounce or delays
+                playSound(soundType);
+              } catch (error) {
+                // Fallback to simple chime if there's an error
+                playSound('chime');
+              }
+            }
+            
+            // Show browser notification (operating system notification)
+            if ("Notification" in window && Notification.permission === "granted") {
+              new Notification("HIT Accepted!", {
+                body: `${requesterName}: $${reward}`,
+                icon: "/icons/icon128.png",
+                badge: "/icons/icon48.png",
+                tag: `hit-accepted-${item.assignment_id}`,
+                requireInteraction: false,
+                silent: false
+              });
+            }
+            
+            // Also show Mantine toast for redundancy
             notifications.show({
               title: "HIT Accepted!",
-              message: `${item.project?.requester_name}: $${reward}`,
+              message: `${requesterName}: $${reward}`,
               color: "green",
               autoClose: 3000,
             });

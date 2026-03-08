@@ -340,6 +340,34 @@ export const announceHitCaught = (soundType: SoundType = "ding"): void => {
   playSound(soundType);
 };
 
+export const showBrowserNotification = (title: string, body: string): void => {
+  if (!("Notification" in window)) return;
+  
+  if (Notification.permission === "granted") {
+    new Notification(title, {
+      body,
+      icon: "/icons/icon128.png",
+    });
+  } else if (Notification.permission !== "denied") {
+    Notification.requestPermission().then((permission) => {
+      if (permission === "granted") {
+        new Notification(title, {
+          body,
+          icon: "/icons/icon128.png",
+        });
+      }
+    });
+  }
+};
+
+export const announceHitWithNotification = (soundType: SoundType = "ding", requesterName?: string, reward?: string): void => {
+  playSound(soundType);
+  const body = requesterName && reward 
+    ? `${requesterName}: $${reward}` 
+    : "A new HIT has been accepted!";
+  showBrowserNotification("HIT Accepted!", body);
+};
+
 export const initAudioContext = (): void => {
   unlockAudio();
 };
