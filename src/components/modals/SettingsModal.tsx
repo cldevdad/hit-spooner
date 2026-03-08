@@ -161,6 +161,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
               </Button>
             </>
           )}
+          
+          <Text size="sm" color="dimmed" mt="sm">
+            Notifications now trigger only when hits are accepted to your queue, 
+            not when initially detected. Sounds play instantly with no delays.
+          </Text>
         </FormSection>
 
         <FormSection title="Update Interval">
