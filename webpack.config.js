@@ -11,6 +11,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "[name].js",
+    chunkFilename: "[name].[contenthash:8].js",
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx"],
@@ -31,6 +32,47 @@ module.exports = {
         use: ["style-loader", "css-loader"],
       },
     ],
+  },
+  optimization: {
+    splitChunks: {
+      chunks: "all",
+      cacheGroups: {
+        // Vendor libraries
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: "vendors",
+          priority: 10,
+          reuseExistingChunk: true,
+        },
+        // React and related libraries
+        react: {
+          test: /[\\/]node_modules[\\/](react|react-dom|@emotion)[\\/]/,
+          name: "react-vendors",
+          priority: 20,
+          reuseExistingChunk: true,
+        },
+        // Mantine UI library
+        mantine: {
+          test: /[\\/]node_modules[\\/]@mantine[\\/]/,
+          name: "mantine-vendors",
+          priority: 15,
+          reuseExistingChunk: true,
+        },
+        // Common code shared between chunks
+        common: {
+          minChunks: 2,
+          priority: 5,
+          reuseExistingChunk: true,
+          name: "common",
+        },
+      },
+    },
+    runtimeChunk: "single",
+  },
+  performance: {
+    hints: false,
+    maxEntrypointSize: 512000,
+    maxAssetSize: 512000,
   },
   plugins: [
     new CopyWebpackPlugin({
