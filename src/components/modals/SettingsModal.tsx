@@ -67,9 +67,28 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
+  const handleCheckboxChange = (name: string, checked: boolean) => {
+    setFilters({
+      ...filters,
+      [name]: checked,
+    });
+  };
+
   const handleIntervalChange = (value: string | null) => {
     if (value) {
-      config.setUpdateInterval(parseInt(value));
+      const interval = parseInt(value, 10);
+      if (!isNaN(interval) && interval > 0) {
+        config.setUpdateInterval(interval);
+      }
+    }
+  };
+
+  const handleSelectFilterChange = (name: string, value: string | null) => {
+    if (value) {
+      setFilters({
+        ...filters,
+        [name]: value,
+      });
     }
   };
 
@@ -80,7 +99,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   };
 
   const handleTestSound = () => {
-    playSound(config.soundType as SoundType);
+    const soundType = config.soundType as SoundType;
+    if (soundType && ['chime', 'coin', 'bell', 'pop', 'ding', 'notification', 'success', 'alert'].includes(soundType)) {
+      playSound(soundType);
+    } else {
+      playSound('chime');
+    }
   };
 
   return (
@@ -110,7 +134,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
         <FormSection title="Sound & Notification Settings">
           <Group
-            align="apart"
+            justify="space-between"
             style={{
               paddingTop: "10px",
             }}
@@ -124,7 +148,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           </Group>
           
           <Group
-            align="apart"
+            justify="space-between"
             style={{
               paddingTop: "10px",
             }}
@@ -193,9 +217,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             label="Sort"
             name="sort"
             value={filters.sort}
-            onChange={(value) =>
-              handleFilterChange({ target: { name: "sort", value } } as any)
-            }
+            onChange={(value) => handleSelectFilterChange("sort", value)}
             data={hitFilterSortOptions}
             styles={themedInputStyles(theme)}
           />
@@ -203,14 +225,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             label="Page Size"
             name="pageSize"
             value={filters.pageSize}
-            onChange={(value) =>
-              handleFilterChange({ target: { name: "pageSize", value } } as any)
-            }
+            onChange={(value) => handleSelectFilterChange("pageSize", value)}
             data={hitFilterPageSizeOptions}
             styles={themedInputStyles(theme)}
           />
           <Group
-            align="apart"
+            justify="space-between"
             style={{
               paddingTop: "10px",
             }}

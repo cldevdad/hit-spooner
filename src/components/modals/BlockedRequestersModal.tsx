@@ -4,6 +4,7 @@ import { useStore } from "../../hooks";
 import { StyledModal } from "../../styles";
 import { notifications } from "@mantine/notifications";
 import { IconBan, IconX, IconTrash, IconAlertTriangle } from "@tabler/icons-react";
+import { LocalStorageKeys } from "../../hooks/store/LocalStorageKeys";
 
 interface BlockedRequestersModalProps {
   isOpen: boolean;
@@ -44,7 +45,7 @@ const BlockedRequestersModal: React.FC<BlockedRequestersModalProps> = ({
   };
 
   const confirmUnblockAll = () => {
-    localStorage.setItem("blockedRequesters", "[]");
+    localStorage.setItem(LocalStorageKeys.BlockedRequesters, "[]");
     window.location.reload();
   };
 

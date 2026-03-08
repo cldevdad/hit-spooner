@@ -20,16 +20,16 @@ import { LocalStorageKeys } from "./LocalStorageKeys";
 // Helper selectors for queue earnings calculations
 export const useTotalEarnings = (state: any) =>
   state.queue.reduce((total: number, assignment: any) => {
-    return total + assignment.project.monetary_reward.amount_in_dollars;
+    return total + (assignment.project?.monetary_reward?.amount_in_dollars || 0);
   }, 0);
 
 export const useTotalEarningsPerHour = (state: any) => {
   const totalReward = state.queue.reduce((total: number, assignment: any) => {
-    return total + assignment.project.monetary_reward.amount_in_dollars;
+    return total + (assignment.project?.monetary_reward?.amount_in_dollars || 0);
   }, 0);
 
   const totalDurationHours = state.queue.reduce((total: number, assignment: any) => {
-    const durationSeconds = assignment.project.assignment_duration_in_seconds || 0;
+    const durationSeconds = assignment.project?.assignment_duration_in_seconds || 0;
     return total + (durationSeconds / 3600); // Convert to hours
   }, 0);
 
@@ -38,7 +38,7 @@ export const useTotalEarningsPerHour = (state: any) => {
 
 export const useAverageRewardPerHit = (state: any) => {
   const totalReward = state.queue.reduce((total: number, assignment: any) => {
-    return total + assignment.project.monetary_reward.amount_in_dollars;
+    return total + (assignment.project?.monetary_reward?.amount_in_dollars || 0);
   }, 0);
 
   return state.queue.length > 0 ? totalReward / state.queue.length : 0;
@@ -46,7 +46,7 @@ export const useAverageRewardPerHit = (state: any) => {
 
 export const useTotalDuration = (state: any) => {
   return state.queue.reduce((total: number, assignment: any) => {
-    const durationSeconds = assignment.project.assignment_duration_in_seconds || 0;
+    const durationSeconds = assignment.project?.assignment_duration_in_seconds || 0;
     return total + durationSeconds;
   }, 0);
 };
@@ -89,11 +89,6 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
       addQueueIntervalRef = null;
     }
   };
-
-  // Track previously seen hit IDs to detect new ones
-  let previouslySeenHitIds = new Set<string>(
-    JSON.parse(localStorage.getItem('previouslySeenHitIds') || '[]')
-  );
 
   // Function to announce new hits with notifications
   const announceNewHit = (hit: IHitProject) => {
@@ -151,7 +146,9 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
         get().removeHitFromAccept(hit.hit_set_id);
       }
     } catch (error) {
-      // Handle network errors silently
+      if (error instanceof Error) {
+        console.warn(`Failed to accept HIT: ${error.message}`);
+      }
     }
   }, MTURK_FETCH_DEBOUNCE_TIME);
 
@@ -428,7 +425,9 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
           );
 
           // Track new hits for notifications
-          const processedHits = new Set<string>(JSON.parse(localStorage.getItem('processedHits') || '[]'));
+          const MAX_PROCESSED_HITS = 10000;
+          const processedHitsArray = JSON.parse(localStorage.getItem('processedHits') || '[]');
+          const processedHits = new Set<string>(processedHitsArray);
           
           for (const hit of filteredHits) {
             const cachedHit = hitMap.get(hit.hit_set_id);
@@ -448,7 +447,12 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
             hitMap.set(hit.hit_set_id, hit);
           }
             
-          // Save processed hits to localStorage
+          // Save processed hits to localStorage with size limit
+          if (processedHits.size > MAX_PROCESSED_HITS) {
+            const hitsArray = Array.from(processedHits);
+            processedHits.clear();
+            hitsArray.slice(-MAX_PROCESSED_HITS).forEach(h => processedHits.add(h));
+          }
           localStorage.setItem('processedHits', JSON.stringify(Array.from(processedHits)));
 
           for (const [hitId, cachedHit] of hitMap) {

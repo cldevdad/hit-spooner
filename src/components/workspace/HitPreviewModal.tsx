@@ -51,7 +51,7 @@ export const HitPreviewModal: React.FC<HitPreviewModalProps> = ({
             <Badge size="lg" color="blue" variant="light">
               {durationMin} min{durationMin !== 1 ? "s" : ""}
             </Badge>
-            {hit.qualifications && hit.qualifications.some((q: any) => q.name?.toLowerCase().includes("master")) && (
+            {hit.qualifications?.some((q) => q.name?.toLowerCase().includes("master")) && (
               <Badge size="lg" color="violet" variant="filled">
                 Masters Only
               </Badge>

@@ -362,8 +362,10 @@ export const showBrowserNotification = (title: string, body: string): void => {
 
 export const announceHitWithNotification = (soundType: SoundType = "ding", requesterName?: string, reward?: string): void => {
   playSound(soundType);
+  if (Notification.permission !== "granted") return;
+  
   const body = requesterName && reward 
-    ? `${requesterName}: $${reward}` 
+    ? `${requesterName}: ${reward}` 
     : "A new HIT has been accepted!";
   showBrowserNotification("HIT Accepted!", body);
 };
@@ -373,18 +375,21 @@ export const initAudioContext = (): void => {
 };
 
 let interactionListenersSetup = false;
+let unlockOnInteraction: (() => void) | null = null;
 
 // This ensures AudioContext is only created on first user interaction
 const setupInteractionListeners = (): void => {
   if (interactionListenersSetup) return;
   interactionListenersSetup = true;
 
-  const unlockOnInteraction = () => {
+  unlockOnInteraction = () => {
     unlockAudio();
-    document.removeEventListener("click", unlockOnInteraction, true);
-    document.removeEventListener("keydown", unlockOnInteraction, true);
-    document.removeEventListener("touchstart", unlockOnInteraction, true);
-    document.removeEventListener("mousedown", unlockOnInteraction, true);
+    if (unlockOnInteraction) {
+      document.removeEventListener("click", unlockOnInteraction, true);
+      document.removeEventListener("keydown", unlockOnInteraction, true);
+      document.removeEventListener("touchstart", unlockOnInteraction, true);
+      document.removeEventListener("mousedown", unlockOnInteraction, true);
+    }
   };
 
   document.addEventListener("click", unlockOnInteraction, true);

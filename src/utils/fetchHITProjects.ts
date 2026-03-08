@@ -18,14 +18,14 @@ interface RetryState {
 // Global request tracking to prevent overwhelming the server
 let activeRequests = 0;
 const maxConcurrentRequests = 3;
-const requestQueue: Array<() => Promise<void>> = [];
+const requestQueue: Array<() => void> = [];
 
 const delay = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
 const exponentialBackoff = (attempt: number): number => {
-  const delay = Math.min(BASE_DELAY_MS * Math.pow(2, attempt), MAX_DELAY_MS);
-  return delay + Math.random() * 2000; // Add more jitter to avoid synchronized requests
+  const delayMs = Math.min(BASE_DELAY_MS * Math.pow(2, attempt), MAX_DELAY_MS);
+  return delayMs + Math.random() * 2000; // Add more jitter to avoid synchronized requests
 };
 
 const handleRetry = async (error: Error, attempt: number): Promise<boolean> => {
@@ -34,7 +34,6 @@ const handleRetry = async (error: Error, attempt: number): Promise<boolean> => {
   }
 
   const backoffDelay = exponentialBackoff(attempt);
-  console.warn(`Retry attempt ${attempt + 1} after ${backoffDelay}ms. Error: ${error.message}`);
   
   await delay(backoffDelay);
   return true;
@@ -43,7 +42,7 @@ const handleRetry = async (error: Error, attempt: number): Promise<boolean> => {
 // Rate limiting to prevent overwhelming MTurk servers
 const acquireRequestSlot = async (): Promise<void> => {
   return new Promise((resolve) => {
-    const tryAcquire = async () => {
+    const tryAcquire = () => {
       if (activeRequests < maxConcurrentRequests) {
         activeRequests++;
         resolve();
@@ -137,7 +136,7 @@ export const fetchHITProjects = async (
             if (response.status === 408 || response.status === 409) {
               // Timeout or conflict - retry with longer delay
               await delay(5000);
-              throw new Error(`Request conflict/timeoustatus: ${response.status}`);
+              throw new Error(`Request conflict/timeout status: ${response.status}`);
             }
             throw new Error(`HTTP error! status: ${response.status}`);
           }

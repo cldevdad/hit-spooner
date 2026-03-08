@@ -84,7 +84,9 @@ const App: React.FC = () => {
     observer.observe(mainContent, { childList: true, subtree: true });
 
     // Always disconnect observer when effect cleans up, regardless of state
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+    };
   }, [isHitSpoonerUrl, startUpdateIntervals, fetchAndUpdateHitsQueue]);
 
   useEffect(() => {
