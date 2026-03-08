@@ -23,7 +23,7 @@ import {
   hitFilterPageSizeOptions,
   hitFilterSortOptions,
 } from "@hit-spooner/api";
-import { playSound, soundOptions, SoundType } from "../../utils";
+import { playSound, soundOptions, SoundType } from "../../utils/playSound";
 
 interface SettingsModalProps {
   isOpen: boolean;

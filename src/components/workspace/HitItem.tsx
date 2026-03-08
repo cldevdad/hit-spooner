@@ -19,7 +19,7 @@ import { GiSpoon } from "react-icons/gi";
 import { MdOutlineQueuePlayNext } from "react-icons/md";
 import { TbShovel } from "react-icons/tb";
 import { useStore } from "../../hooks";
-import { playSound } from "../../utils";
+import { playSound } from "../../utils/playSound";
 import { StyledTitle } from "../../styles";
 import YesNoModal from "../modals/YesNoModal";
 

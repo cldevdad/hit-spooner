@@ -12,7 +12,8 @@ import {
   newsTheme,
   blueTheme,
 } from "../../styles/themes";
-import { fetchDashboardData, fetchHITProjects, announceHitCaught, announceHitWithNotification, SoundType, playSound, safeParseInt } from "../../utils";
+import { fetchDashboardData, fetchHITProjects, safeParseInt, safeLocalStorageGet, safeLocalStorageSet } from "../../utils";
+import { announceHitCaught, announceHitWithNotification, SoundType, playSound } from "../../utils/playSound";
 import { useIndexedDb, loadHits as loadHitsFromDb } from "../useIndexedDb";
 import { IHitSpoonerStoreState } from "./IHitSpoonerStoreState";
 import { LocalStorageKeys } from "./LocalStorageKeys";
@@ -167,16 +168,9 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
     },
     queue: [],
     loadingQueue: false,
-    blockedRequesters: JSON.parse(
-      localStorage.getItem(LocalStorageKeys.BlockedRequesters) || "[]"
-    ),
-    favoriteRequesters: JSON.parse(
-      localStorage.getItem(LocalStorageKeys.FavoriteRequesters) || "[]"
-    ),
-    filters: JSON.parse(
-      localStorage.getItem(LocalStorageKeys.HitSearchFilters) ??
-      JSON.stringify(defaultHitFilters)
-    ),
+    blockedRequesters: safeLocalStorageGet(LocalStorageKeys.BlockedRequesters, []),
+    favoriteRequesters: safeLocalStorageGet(LocalStorageKeys.FavoriteRequesters, []),
+    filters: safeLocalStorageGet(LocalStorageKeys.HitSearchFilters, defaultHitFilters),
     paused: false,
     hitsToAccept: [],
     isLoggedIn: false,
@@ -433,8 +427,8 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
 
           // Track new hits for notifications
           const MAX_PROCESSED_HITS = 10000;
-          const processedHitsArray = JSON.parse(localStorage.getItem('processedHits') || '[]');
-          const processedHits = new Set<string>(processedHitsArray);
+          const processedHitsArray = safeLocalStorageGet('processedHits', []);
+          const processedHits = new Set<string>(Array.isArray(processedHitsArray) ? processedHitsArray : []);
           
           for (const hit of filteredHits) {
             const cachedHit = hitMap.get(hit.hit_set_id);
@@ -595,22 +589,12 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
             const reward = item.project?.monetary_reward?.amount_in_dollars?.toFixed(2) || "0.00";
             const requesterName = item.project?.requester_name || "Unknown Requester";
             
-            // Play sound IMMEDIATELY for instant feedback - no delays
+            // Use centralized sound system
             if (get().config.soundEnabled) {
               try {
-                // Use the configured sound type or default to chime
                 const soundType = (get().config.soundType as SoundType) || "chime";
-                
-                // Force immediate audio context creation and playback
-                const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-                if (audioContext.state === "suspended") {
-                  audioContext.resume();
-                }
-                
-                // Play sound directly without debounce or delays
-                playSound(soundType);
+                announceHitWithNotification(soundType, requesterName, reward);
               } catch (error) {
-                // Fallback to simple chime if there's an error
                 playSound('chime');
               }
             }
@@ -805,60 +789,30 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
     startUpdateIntervals: () => {
       clearIntervals();
 
-      const fetchAndUpdateHits = get().fetchAndUpdateHits;
-      const fetchAndUpdateDashboard = get().fetchAndUpdateDashboard;
-      const handleAutomaticAcceptance = get().handleAutomaticAcceptance;
-      const fetchAndUpdateHitsQueue = get().fetchAndUpdateHitsQueue;
-
-      const taskWeights = {
-        fetchAndUpdateHitsQueue: 1,
-        fetchAndUpdateHits: 3,
-        handleAutomaticAcceptance: 2,
-        fetchAndUpdateDashboard: 1,
-      };
-
-      const taskQueue: (() => void)[] = [];
-
-      const addToQueue = () => {
-        for (let i = 0; i < taskWeights.fetchAndUpdateHitsQueue; i++) {
-          taskQueue.push(fetchAndUpdateHitsQueue);
-        }
-        for (let i = 0; i < taskWeights.fetchAndUpdateHits; i++) {
-          taskQueue.push(() => {
-            if (!get().paused) {
-              fetchAndUpdateHits();
-            }
-          });
-        }
-        for (let i = 0; i < taskWeights.handleAutomaticAcceptance; i++) {
-          taskQueue.push(() => {
-            if (!get().paused) {
-              handleAutomaticAcceptance();
-            }
-          });
-        }
-        for (let i = 0; i < taskWeights.fetchAndUpdateDashboard; i++) {
-          taskQueue.push(fetchAndUpdateDashboard);
-        }
-      };
-
-      const processQueue = () => {
-        if (taskQueue.length === 0) return;
-        // Process multiple tasks per cycle for faster hit catching
-        const tasksToProcess = Math.min(taskQueue.length, 4);
-        for (let i = 0; i < tasksToProcess; i++) {
-          const task = taskQueue.shift();
-          if (task) {
-            task();
-          }
-        }
-      };
-
       const interval = get().config.updateInterval;
 
-      addToQueue();
-      intervalRef = setInterval(processQueue, interval);
-      addQueueIntervalRef = setInterval(addToQueue, interval * taskQueue.length);
+      // Process hits and dashboard updates
+      intervalRef = setInterval(() => {
+        if (!get().paused) {
+          get().fetchAndUpdateHits();
+          get().fetchAndUpdateDashboard();
+        }
+      }, interval);
+
+      // Process automatic acceptance
+      addQueueIntervalRef = setInterval(() => {
+        if (!get().paused) {
+          get().handleAutomaticAcceptance();
+        }
+      }, interval);
+
+      // Process queue updates
+      const queueIntervalRef = setInterval(() => {
+        get().fetchAndUpdateHitsQueue();
+      }, interval);
+
+      // Store queue interval reference for cleanup
+      (get() as any)._queueIntervalRef = queueIntervalRef;
     },
 
     purgeOldHits: async () => {
