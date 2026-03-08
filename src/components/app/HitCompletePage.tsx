@@ -70,7 +70,7 @@ const HitCompletePage: React.FC = () => {
         coin.animate(
           [
             { transform: `translate(0, 0) scale(1)`, opacity: 1 },
-            { transform: `translate(${x}px, -${y}px) scale(0)`, opacity: 0 },
+            { transform: `translate(${x}px, ${y}px) scale(0)`, opacity: 0 },
           ],
           {
             duration: 1000,

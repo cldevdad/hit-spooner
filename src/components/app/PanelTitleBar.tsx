@@ -1,26 +1,36 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "@emotion/styled";
-import { Slider, TextInput, Tooltip } from "@mantine/core";
+import { Slider, TextInput, Tooltip, ActionIcon } from "@mantine/core";
 import { useTheme } from "@emotion/react";
-import { IconX, IconInfoCircle } from "@tabler/icons-react";
+import { IconX, IconInfoCircle, IconDownload } from "@tabler/icons-react";
 import { themedSliderStyles } from "../../styles";
 
 const StyledPanelTitleBar = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 2px;
-  background-color: ${(props) => props.theme.colors.primary[6]};
+  padding: 12px 16px;
+  background: linear-gradient(180deg, ${(props) => props.theme.colors.primary[6]} 0%, ${(props) => props.theme.colors.primary[5]} 100%);
   border-bottom: 1px solid ${(props) => props.theme.colors.primary[4]};
   z-index: 1;
   width: 100%;
-  height: 34px;
+  min-height: 56px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: visible;
+`;
+
+const SliderWrapper = styled.div`
+  overflow: visible;
+  min-width: 140px;
 `;
 
 const StyledTitle = styled.div`
-  font-size: 0.9rem;
-  font-weight: bold;
-  padding-left: 5px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 `;
 
 const FilterInputWrapper = styled.div`
@@ -64,6 +74,11 @@ interface IPanelTitleBarProps {
   setColumns?: (value: number) => void;
   filterText?: string;
   setFilterText?: (value: string) => void;
+  totalEarnings?: number;
+  totalEarningsPerHour?: number;
+  averageRewardPerHit?: number;
+  totalDuration?: number;
+  onExport?: () => void;
 }
 
 const PanelTitleBar: React.FC<IPanelTitleBarProps> = ({
@@ -72,8 +87,14 @@ const PanelTitleBar: React.FC<IPanelTitleBarProps> = ({
   setColumns,
   filterText,
   setFilterText,
+  totalEarnings,
+  totalEarningsPerHour,
+  averageRewardPerHit,
+  totalDuration,
+  onExport,
 }) => {
   const theme = useTheme();
+  const [statsExpanded, setStatsExpanded] = useState(false);
 
   const handleClearFilter = () => {
     if (setFilterText) {
@@ -81,18 +102,83 @@ const PanelTitleBar: React.FC<IPanelTitleBarProps> = ({
     }
   };
 
+  const formatDuration = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
   return (
     <StyledPanelTitleBar>
-      <StyledTitle>{title}</StyledTitle>
+      <StyledTitle>
+        {title}
+        {typeof totalEarnings !== "undefined" && (
+          <span
+            style={{ 
+              fontSize: "0.8rem", 
+              marginLeft: "12px", 
+              fontWeight: "normal",
+              padding: "3px 10px",
+              backgroundColor: theme.colors.primary[1],
+              borderRadius: "6px",
+              border: `1px solid ${theme.colors.primary[3]}`,
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              flexWrap: "wrap",
+              cursor: "pointer",
+            }}
+            onMouseEnter={() => setStatsExpanded(true)}
+            onMouseLeave={() => setStatsExpanded(false)}
+          >
+            <span>Total: ${totalEarnings.toFixed(2)}</span>
+            {statsExpanded && (
+              <>
+                {typeof totalEarningsPerHour !== "undefined" && (
+                  <span style={{ 
+                    paddingLeft: "8px",
+                    borderLeft: `1px solid ${theme.colors.primary[3]}`
+                  }}>
+                    ${totalEarningsPerHour.toFixed(2)}/hr
+                  </span>
+                )}
+                {typeof averageRewardPerHit !== "undefined" && (
+                  <span style={{ 
+                    paddingLeft: "8px",
+                    borderLeft: `1px solid ${theme.colors.primary[3]}`
+                  }}>
+                    Avg: ${averageRewardPerHit.toFixed(2)}
+                  </span>
+                )}
+                {typeof totalDuration !== "undefined" && (
+                  <span style={{ 
+                    paddingLeft: "8px",
+                    borderLeft: `1px solid ${theme.colors.primary[3]}`
+                  }}>
+                    Time: {formatDuration(totalDuration)}
+                  </span>
+                )}
+              </>
+            )}
+          </span>
+        )}
+      </StyledTitle>
       {columns !== undefined && setColumns !== undefined && (
-        <Slider
-          min={1}
-          max={5}
-          step={1}
-          value={columns}
-          onChange={setColumns}
-          styles={themedSliderStyles(theme)}
-        />
+        <SliderWrapper>
+          <Slider
+            min={1}
+            max={5}
+            step={1}
+            value={columns}
+            onChange={setColumns}
+            styles={themedSliderStyles(theme)}
+          />
+        </SliderWrapper>
       )}
       {setFilterText && (
         <FilterInputWrapper>
@@ -141,6 +227,18 @@ const PanelTitleBar: React.FC<IPanelTitleBarProps> = ({
             <IconX size={16} />
           </IconWrapper>
         </FilterInputWrapper>
+      )}
+      {onExport && (
+        <Tooltip label="Export queue to CSV" position="bottom">
+          <ActionIcon
+            variant="light"
+            size="lg"
+            onClick={onExport}
+            style={{ marginLeft: 8 }}
+          >
+            <IconDownload size={16} />
+          </ActionIcon>
+        </Tooltip>
       )}
     </StyledPanelTitleBar>
   );

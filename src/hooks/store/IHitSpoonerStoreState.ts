@@ -51,6 +51,11 @@ export interface IHitSpoonerStoreState {
   blockRequester: (requesterId: string) => void;
 
   /**
+   * Function to clear all blocked requesters.
+   */
+  clearBlockedRequesters: () => void;
+
+  /**
    * Function to fetch and update the HITs data.
    */
   fetchAndUpdateHits: () => void;
@@ -120,6 +125,18 @@ export interface IHitSpoonerStoreState {
   togglePause: () => void;
 
   /**
+   * Whether the user is logged in to MTurk.
+   */
+  isLoggedIn: boolean;
+
+  /**
+   * Function to update the logged in status.
+   *
+   * @param loggedIn - Whether the user is logged in.
+   */
+  setLoggedIn: (loggedIn: boolean) => void;
+
+  /**
    * Queue of HIT assignments.
    */
   queue: IHitAssignment[];
@@ -155,4 +172,19 @@ export interface IHitSpoonerStoreState {
    * @param page - The page number to set.
    */
   setHitsPage: (page: number) => void;
+
+  /**
+   * Function to purge old HITs from the database.
+   */
+  purgeOldHits: () => Promise<void>;
+
+  /**
+   * Function to reorder queue items.
+   */
+  reorderQueue: (fromIndex: number, toIndex: number) => void;
+
+  /**
+   * Function to prioritize a queue item (move to front).
+   */
+  prioritizeQueueItem: (index: number) => void;
 }

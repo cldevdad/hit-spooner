@@ -132,4 +132,11 @@ export interface IHitProject {
    * Indicates whether the caller meets the preview requirements for the HIT.
    */
   caller_meets_preview_requirements?: boolean;
+
+  /**
+   * Information about the requester.
+   */
+  requesterInfo?: {
+    taskApprovalRate?: string;
+  };
 }

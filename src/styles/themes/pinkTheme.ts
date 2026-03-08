@@ -75,6 +75,8 @@ export const pinkTheme: MantineThemeOverride = {
     negativeButtonHoverColor: "#C53030", // Darker red for hover state
     negativeButtonActiveColor: "#9B2C2C", // Even darker red for active state
     favoriteIcon: "#F4A1B1", // Light rose color for favorite icon
+    scoopIconColor: "#48BB78", // Green for scoop icon
+    shovelIconColor: "#F4A1B1", // Pink for shovel icon
     turkerView: {
       danger: "#E53E3E", // Red for 'danger' class
       warning: "#DD6B20", // Orange for 'warning' class

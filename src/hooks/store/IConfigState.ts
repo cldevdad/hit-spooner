@@ -85,4 +85,34 @@ export interface IConfigState {
    * Function to set the number of columns for the HitList in the requester modal
    */
   setRequesterModalColumns: (columns: number) => void;
+
+  /**
+   * Whether sound effects are enabled
+   */
+  soundEnabled: boolean;
+
+  /**
+   * Function to toggle sound effects
+   */
+  setSoundEnabled: (enabled: boolean) => void;
+
+  /**
+   * The selected sound type for hit caught notifications
+   */
+  soundType: string;
+
+  /**
+   * Function to set the sound type
+   */
+  setSoundType: (soundType: string) => void;
+
+  /**
+   * Whether popup notifications are enabled
+   */
+  notificationEnabled: boolean;
+
+  /**
+   * Function to toggle popup notifications
+   */
+  setNotificationEnabled: (enabled: boolean) => void;
 }

@@ -23,7 +23,7 @@ export const useTurkerView = (requesterIds: string[]) => {
    *
    * @param newRequesterIds - An array of requester IDs that need to be fetched.
    */
-  const fetchRequesters = useCallback(async (newRequesterIds: string[]) => {
+  const fetchRequesters = useCallback(async (newRequesterIds: string[], signal: AbortSignal) => {
     if (newRequesterIds.length === 0) return;
 
     try {
@@ -33,6 +33,7 @@ export const useTurkerView = (requesterIds: string[]) => {
           method: "GET",
           cache: "no-cache",
           headers: turkerViewHeaders,
+          signal,
         }
       );
 
@@ -59,16 +60,23 @@ export const useTurkerView = (requesterIds: string[]) => {
         ...fetchedRequesters,
       }));
     } catch (error) {
-      console.error("Error fetching requester data:", error);
+      if (error instanceof Error && error.name !== 'AbortError') {
+        // Handle fetch errors silently except abort errors
+      }
     }
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController();
+    const signal = controller.signal;
+
     const newRequesterIds = requesterIds.filter(
       (id) => !(id in cachedRequesters.current)
     );
 
-    fetchRequesters(newRequesterIds);
+    fetchRequesters(newRequesterIds, signal);
+
+    return () => controller.abort();
   }, [requesterIds]);
 
   /**
@@ -77,11 +85,16 @@ export const useTurkerView = (requesterIds: string[]) => {
    * @param ids - An array of requester IDs to fetch.
    */
   const fetchAdditionalRequesters = (ids: string[]) => {
+    const controller = new AbortController();
+    const signal = controller.signal;
+    
     const newRequesterIds = ids.filter(
       (id) => !(id in cachedRequesters.current)
     );
 
-    fetchRequesters(newRequesterIds);
+    fetchRequesters(newRequesterIds, signal);
+    
+    return () => controller.abort();
   };
 
   return {

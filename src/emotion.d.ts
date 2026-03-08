@@ -30,6 +30,8 @@ declare module "@emotion/react" {
       negativeButtonHoverColor: string;
       negativeButtonActiveColor: string;
       favoriteIcon: string;
+      scoopIconColor: string;
+      shovelIconColor: string;
       earningsPanelBackground: string;
       earningsPanelTextColor: string;
       chartPositiveColor: string;

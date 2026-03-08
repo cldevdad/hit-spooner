@@ -7,6 +7,7 @@ import {
   TextInput,
   Group,
   Paper,
+  Button,
 } from "@mantine/core";
 import React from "react";
 import { useStore } from "../../hooks";
@@ -22,29 +23,22 @@ import {
   hitFilterPageSizeOptions,
   hitFilterSortOptions,
 } from "@hit-spooner/api";
+import { playSound, soundOptions, SoundType } from "../../utils/playSound";
 
-/**
- * Interface for the SettingsModal component props.
- */
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
 const updateIntervalOptions = [
-  { value: "900", label: "Lightning Fast (900ms)" },
-  { value: "1200", label: "Fast (1200ms)" },
-  { value: "1500", label: "Balanced (1500ms)" },
-  { value: "2000", label: "Slow (2000ms)" },
+  { value: "600", label: "Very Fast (0.6s) - Optimized for speed" },
+  { value: "800", label: "Fast (0.8s) - Recommended for best performance" },
+  { value: "1000", label: "Normal (1s) - Balanced speed and reliability" },
+  { value: "1200", label: "Conservative (1.2s) - Enhanced reliability" },
+  { value: "1500", label: "Safe (1.5s) - Maximum stability" },
+  { value: "2000", label: "Very Safe (2s) - Minimal server load" },
 ];
 
-/**
- * Modal component that provides a UI for configuring HitSpooner.
- *
- * @param {SettingsModalProps} props - Component properties.
- * @param {boolean} props.isOpen - Determines if the modal is open.
- * @param {() => void} props.onClose - Callback function to close the modal.
- */
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const theme = useTheme();
   const { filters, setFilters, config } = useStore();
@@ -73,9 +67,43 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
+  const handleCheckboxChange = (name: string, checked: boolean) => {
+    setFilters({
+      ...filters,
+      [name]: checked,
+    });
+  };
+
   const handleIntervalChange = (value: string | null) => {
     if (value) {
-      config.setUpdateInterval(parseInt(value));
+      const interval = parseInt(value, 10);
+      if (!isNaN(interval) && interval > 0) {
+        config.setUpdateInterval(interval);
+      }
+    }
+  };
+
+  const handleSelectFilterChange = (name: string, value: string | null) => {
+    if (value) {
+      setFilters({
+        ...filters,
+        [name]: value,
+      });
+    }
+  };
+
+  const handleSoundTypeChange = (value: string | null) => {
+    if (value) {
+      config.setSoundType(value);
+    }
+  };
+
+  const handleTestSound = () => {
+    const soundType = config.soundType as SoundType;
+    if (soundType && ['chime', 'coin', 'bell', 'pop', 'ding', 'notification', 'success', 'alert'].includes(soundType)) {
+      playSound(soundType);
+    } else {
+      playSound('chime');
     }
   };
 
@@ -93,7 +121,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       closeOnClickOutside
     >
       <Stack gap="md">
-        {/* Theme Selection */}
         <FormSection title="General Settings">
           <Select
             label="Theme"
@@ -105,7 +132,65 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           />
         </FormSection>
 
-        {/* Update Interval Selection */}
+        <FormSection title="Sound & Notification Settings">
+          <Group
+            justify="space-between"
+            style={{
+              paddingTop: "10px",
+            }}
+          >
+            <CustomIconCheckbox
+              label="Enable Sound"
+              name="soundEnabled"
+              checked={config.soundEnabled}
+              onChange={() => config.setSoundEnabled(!config.soundEnabled)}
+            />
+          </Group>
+          
+          <Group
+            justify="space-between"
+            style={{
+              paddingTop: "10px",
+            }}
+          >
+            <CustomIconCheckbox
+              label="Enable Popup Notifications"
+              name="notificationEnabled"
+              checked={config.notificationEnabled}
+              onChange={() => config.setNotificationEnabled(!config.notificationEnabled)}
+            />
+          </Group>
+          
+          {config.soundEnabled && (
+            <>
+              <Select
+                label="Sound Type"
+                data={soundOptions.map(s => ({ value: s.value, label: s.label }))}
+                placeholder="Select sound"
+                onChange={handleSoundTypeChange}
+                value={config.soundType}
+                styles={themedInputStyles(theme)}
+                mt="sm"
+              />
+              
+              <Button
+                variant="light"
+                size="sm"
+                mt="md"
+                onClick={handleTestSound}
+                style={{ width: "100%" }}
+              >
+                Test Sound
+              </Button>
+            </>
+          )}
+          
+          <Text size="sm" color="dimmed" mt="sm">
+            Notifications now trigger only when hits are accepted to your queue, 
+            not when initially detected. Sounds play instantly with no delays.
+          </Text>
+        </FormSection>
+
         <FormSection title="Update Interval">
           <Select
             label="Update Interval"
@@ -117,7 +202,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           />
         </FormSection>
 
-        {/* Search Filters */}
         <FormSection title="Search Settings">
           <TextInput
             label="Minimum Reward"
@@ -133,9 +217,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             label="Sort"
             name="sort"
             value={filters.sort}
-            onChange={(value) =>
-              handleFilterChange({ target: { name: "sort", value } } as any)
-            }
+            onChange={(value) => handleSelectFilterChange("sort", value)}
             data={hitFilterSortOptions}
             styles={themedInputStyles(theme)}
           />
@@ -143,14 +225,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             label="Page Size"
             name="pageSize"
             value={filters.pageSize}
-            onChange={(value) =>
-              handleFilterChange({ target: { name: "pageSize", value } } as any)
-            }
+            onChange={(value) => handleSelectFilterChange("pageSize", value)}
             data={hitFilterPageSizeOptions}
             styles={themedInputStyles(theme)}
           />
           <Group
-            align="apart"
+            justify="space-between"
             style={{
               paddingTop: "10px",
             }}
@@ -174,9 +254,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   );
 };
 
-/**
- * FormSection component to group related form controls together with a title.
- */
 const FormSection: React.FC<{ title: string; children: React.ReactNode }> = ({
   title,
   children,

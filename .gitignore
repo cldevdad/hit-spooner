@@ -17,3 +17,7 @@ node_modules
 
 # build artifacts
 dist/
+1.0_0/
+
+# Windows reserved device name (avoids accidental creation)
+nul

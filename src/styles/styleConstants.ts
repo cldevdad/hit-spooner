@@ -193,7 +193,10 @@ export const themedInputStyles = (theme: Theme) => ({
  */
 export const themedSliderStyles = (theme: Theme): object => ({
   root: {
-    width: "15%",
+    width: "120px",
+    minWidth: "120px",
+    marginTop: "8px",
+    marginBottom: "8px",
   },
   track: {
     backgroundColor: theme.colors.primary[3],
@@ -208,6 +211,11 @@ export const themedSliderStyles = (theme: Theme): object => ({
   label: {
     backgroundColor: theme.colors.primary[7],
     color: theme.white,
-    zIndex: 9999,
+    fontSize: "12px",
+    top: "24px",
+  },
+  markLabel: {
+    fontSize: "10px",
+    color: theme.colors.primary[6],
   },
 });

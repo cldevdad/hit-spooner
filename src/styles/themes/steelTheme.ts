@@ -75,6 +75,8 @@ export const steelTheme: MantineThemeOverride = {
     negativeButtonHoverColor: "#C53030", // Darker red for hover state
     negativeButtonActiveColor: "#9B2C2C", // Even darker red for active state
     favoriteIcon: "#C0A96A", // Muted gold for favorite icon
+    scoopIconColor: "#4CAF50", // Green for scoop icon
+    shovelIconColor: "#C0A96A", // Gold for shovel icon
     turkerView: {
       danger: "#E53E3E", // Red for 'danger' class
       warning: "#DD6B20", // Orange for 'warning' class

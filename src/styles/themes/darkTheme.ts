@@ -27,6 +27,18 @@ export const darkTheme: MantineThemeOverride = {
       "#2B6CB0", // Deeper blue for emphasis
       "#2C5282", // Dark blue for important text
     ],
+    green: [
+      "#F0FFF4", // Very light green
+      "#C6F6D5", // Light green
+      "#9AE6B4", // Soft green
+      "#68D391", // Medium green
+      "#48BB78", // Strong green
+      "#38A169", // Darker green
+      "#2F855A", // Deep green
+      "#276749", // Very deep green
+      "#22543D", // Dark green for text
+      "#1C4532", // Very dark green for text
+    ],
   },
   primaryColor: "primary",
   primaryShade: 5, // Main gray shade for primary components
@@ -75,6 +87,8 @@ export const darkTheme: MantineThemeOverride = {
     negativeButtonHoverColor: "#C53030", // Darker red for hover state
     negativeButtonActiveColor: "#9B2C2C", // Even darker red for active state
     favoriteIcon: "#F0B429", // Warm yellow color for favorite icon
+    scoopIconColor: "#48BB78", // Green for scoop icon
+    shovelIconColor: "#F0B429", // Yellow for shovel icon
     turkerView: {
       danger: "#E53E3E", // Red for 'danger' class
       warning: "#DD6B20", // Orange for 'warning' class
@@ -125,17 +139,18 @@ export const darkTheme: MantineThemeOverride = {
         },
       }),
     },
-    Title: {
+    Notification: {
       styles: (theme: Theme) => ({
         root: {
-          color: theme.colors.primary[8], // Light gray for titles
+          backgroundColor: theme.colors.primary[1],
+          color: theme.colors.primary[9],
         },
-      }),
-    },
-    Text: {
-      styles: (theme: Theme) => ({
-        root: {
-          color: theme.colors.primary[7], // Light gray for text
+        title: {
+          color: theme.colors.primary[9],
+          fontWeight: 600,
+        },
+        description: {
+          color: theme.colors.primary[8],
         },
       }),
     },

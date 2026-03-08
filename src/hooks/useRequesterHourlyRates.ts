@@ -58,7 +58,7 @@ export const useRequesterHourlyRates = (requesterIds: string[]) => {
 
         setHourlyRates((prevRates) => ({ ...prevRates, ...rates }));
       } catch (error) {
-        console.error("Error fetching requester hourly rates:", error);
+        // Handle fetch errors silently
       }
     };
 

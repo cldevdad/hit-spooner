@@ -1,134 +1,103 @@
 import { IHitProject, IHitSearchFilter } from "@hit-spooner/api";
-import { openDB } from "idb";
+import { openDB, IDBPDatabase } from "idb";
 
 const DB_NAME = "hit-spooner-db";
 const STORE_NAME = "hits";
 
-/**
- * Opens the IndexedDB database, creating it if it doesn't exist.
- *
- * @returns {Promise<IDBPDatabase<unknown>>} - The opened database instance.
- */
-async function getDb() {
-  return openDB(DB_NAME, 1, {
-    upgrade(db) {
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: "hit_set_id" });
-      }
-    },
-  });
-}
+let dbPromise: Promise<IDBPDatabase> | null = null;
 
-/**
- * Adds or updates a HIT in IndexedDB with relaxed durability. If the HIT
- * already exists, it updates it; otherwise, it adds it.
- *
- * @param {IHitProject} hit - The HIT to add or update.
- * @returns {Promise<void>} - Resolves when the operation is complete.
- */
-export const addOrUpdateHit = async (hit: IHitProject): Promise<void> => {
-  const db = await getDb();
-  const tx = db.transaction(STORE_NAME, "readwrite", {
-    durability: "relaxed",
-  });
-  const store = tx.objectStore(STORE_NAME);
-
-  const existingHit = await store.get(hit.hit_set_id);
-
-  if (existingHit) {
-    // Update existing HIT
-    await store.put({ ...existingHit, ...hit });
-  } else {
-    // Add new HIT
-    await store.add(hit);
+const getDb = (): Promise<IDBPDatabase> => {
+  if (!dbPromise) {
+    dbPromise = openDB(DB_NAME, 1, {
+      upgrade(db) {
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: "hit_set_id" });
+        }
+      },
+    });
   }
+  return dbPromise;
+};
 
+export const clearAllHits = async (): Promise<void> => {
+  const db = await getDb();
+  const tx = db.transaction(STORE_NAME, "readwrite");
+  await tx.store.clear();
   await tx.done;
 };
 
-/**
- * Loads all HITs from IndexedDB, including unavailable ones.
- *
- * @param {IHitSearchFilter} filters - The filters to apply to the HIT search.
- * @returns {Promise<IHitProject[]>} - The list of HITs.
- */
-export const loadHits = async (
-  filters: IHitSearchFilter
-): Promise<IHitProject[]> => {
+export const addOrUpdateHit = async (hit: IHitProject): Promise<void> => {
   const db = await getDb();
-  const allHits = await db.getAll(STORE_NAME);
-
-  // Apply your filtering logic here based on the filters parameter
-  return allHits.filter((hit) => {
-    let matches = true;
-
-    if (filters.qualified !== undefined) {
-      matches = matches && hit.qualified === filters.qualified;
-    }
-
-    if (filters.masters !== undefined) {
-      matches = matches && hit.masters === filters.masters;
-    }
-
-    if (filters.minReward !== undefined) {
-      matches =
-        matches &&
-        hit.monetary_reward.amount_in_dollars >= parseFloat(filters.minReward);
-    }
-
-    return matches;
-  });
+  const tx = db.transaction(STORE_NAME, "readwrite", { durability: "relaxed" });
+  const existingHit = await tx.store.get(hit.hit_set_id);
+  await tx.store.put(existingHit ? { ...existingHit, ...hit } : hit);
+  await tx.done;
 };
 
-/**
- * Loads HITs from IndexedDB with pagination support.
- *
- * @param {number} page - The page number to load.
- * @param {number} pageSize - The number of HITs per page.
- * @param {IHitSearchFilter} filters - The filters to apply to the HIT search.
- * @returns {Promise<[IHitProject[], number]>} - The HITs for the page and total HIT count.
- */
+export const addOrUpdateHits = async (hits: IHitProject[]): Promise<void> => {
+  const db = await getDb();
+  const tx = db.transaction(STORE_NAME, "readwrite", { durability: "relaxed" });
+  const store = tx.store;
+
+  for (const hit of hits) {
+    const existingHit = await store.get(hit.hit_set_id);
+    await store.put(existingHit ? { ...existingHit, ...hit } : hit);
+  }
+  await tx.done;
+};
+
+export const loadHits = async (filters: IHitSearchFilter): Promise<IHitProject[]> => {
+  const db = await getDb();
+  const allHits = await db.getAll(STORE_NAME);
+  const minReward = filters.minReward ? parseFloat(filters.minReward) : 0;
+
+  return minReward > 0
+    ? allHits.filter((hit) => hit.monetary_reward?.amount_in_dollars >= minReward)
+    : allHits;
+};
+
 export const loadHitsByPage = async (
   page: number,
   pageSize: number,
   filters: IHitSearchFilter
 ): Promise<[IHitProject[], number]> => {
   const allHits = await loadHits(filters);
-
   const startIndex = (page - 1) * pageSize;
-  const paginatedHits = allHits.slice(startIndex, startIndex + pageSize);
-
-  return [paginatedHits, allHits.length];
+  return [allHits.slice(startIndex, startIndex + pageSize), allHits.length];
 };
 
-/**
- * Deletes a HIT from IndexedDB.
- *
- * @param {string} hitId - The ID of the HIT to delete.
- * @returns {Promise<void>} - Resolves when the HIT is deleted.
- */
 export const deleteHit = async (hitId: string): Promise<void> => {
   const db = await getDb();
   const tx = db.transaction(STORE_NAME, "readwrite");
-  const store = tx.objectStore(STORE_NAME);
-
-  await store.delete(hitId);
-
+  await tx.store.delete(hitId);
   await tx.done;
 };
 
-/**
- * Custom hook for interacting with IndexedDB for HITs, including paginated loading.
- *
- * Provides methods to add, update, load, load by page, and delete HITs.
- */
-export const useIndexedDb = () => {
-  return {
-    addOrUpdateHit,
-    loadHits,
-    loadHitsByPage,
-    deleteHitFromIndexedDb: deleteHit,
-  };
+export const purgeOldHits = async (): Promise<void> => {
+  try {
+    const db = await getDb();
+    const allHits = await db.getAll(STORE_NAME);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    for (const hit of allHits) {
+      if (hit.last_seen && new Date(hit.last_seen) < sevenDaysAgo) {
+        await tx.store.delete(hit.hit_set_id);
+      }
+    }
+    await tx.done;
+  } catch {
+    // Silently handle purge errors to avoid console output
+  }
 };
 
-export default useIndexedDb;
+export const useIndexedDb = () => ({
+  addOrUpdateHit,
+  addOrUpdateHits,
+  clearAllHits,
+  loadHits,
+  loadHitsByPage,
+  deleteHit,
+  purgeOldHits,
+});

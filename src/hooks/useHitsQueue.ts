@@ -11,7 +11,8 @@ export const useHitsQueue = () => {
     const fetchQueueData = async () => {
       try {
         const response = await axios.get(
-          "https://worker.mturk.com/tasks/?format=json"
+          "https://worker.mturk.com/tasks/?format=json",
+          { timeout: 10000 }
         );
         setQueue(response.data.tasks || []);
         setLoading(false);

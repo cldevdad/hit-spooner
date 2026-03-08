@@ -33,14 +33,14 @@ export const useActivityData = () => {
 
         // Fetching data for the last three days
         const responses = await Promise.allSettled(
-          urls.map((url) => axios.get(url))
+          urls.map((url) => axios.get(url, { timeout: 10000 }))
         );
 
         const combinedResults = responses.flatMap((result) => {
           if (result.status === "fulfilled") {
             return result.value.data.results || [];
           } else {
-            console.warn("Failed to fetch data for a day:", result.reason);
+            // Silently handle failed fetches to avoid console output
             return [];
           }
         });

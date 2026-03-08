@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Theme, useTheme } from "@emotion/react";
 import styled from "@emotion/styled";
-import { Alert, Button, Stack, Text } from "@mantine/core";
+import { Alert, Badge, Button, Stack, Text } from "@mantine/core";
 import {
   IconClock,
   IconCurrencyDollar,
@@ -21,20 +21,17 @@ interface RequesterModalProps {
   requesterId: string;
 }
 
-// Styled component for displaying the requester's name
 const RequesterName = styled.div`
   font-size: ${(props) => props.theme.fontSizes.xl};
   font-weight: bold;
   color: ${(props) => props.theme.colors.primary[8]};
 `;
 
-// Styled component for displaying the requester ID
 const RequesterId = styled.div`
   font-size: ${(props) => props.theme.fontSizes.sm};
   color: ${(props) => props.theme.colors.primary[7]};
 `;
 
-// Styled component for displaying information text with optional color
 const StyledInfoText = styled.div<{ color?: string }>`
   display: flex;
   align-items: center;
@@ -42,7 +39,6 @@ const StyledInfoText = styled.div<{ color?: string }>`
   color: ${(props) => props.color || props.theme.colors.primary[8]};
 `;
 
-// Styled container for the scrollable content within the modal
 const ScrollableContent = styled.div`
   flex-grow: 1;
   overflow-y: auto;
@@ -51,7 +47,6 @@ const ScrollableContent = styled.div`
   ${({ theme }) => themedScrollbarStyles(theme)};
 `;
 
-// Styled component for the bottom actions section of the modal
 const BottomActions = styled.div`
   display: flex;
   justify-content: center;
@@ -60,7 +55,6 @@ const BottomActions = styled.div`
   background-color: ${(props) => props.theme.colors.primary[0]};
 `;
 
-// Styled container for TurkerView information
 const StyledTurkerViewContainer = styled.div`
   width: 100%;
   display: flex;
@@ -68,7 +62,6 @@ const StyledTurkerViewContainer = styled.div`
   justify-content: space-around;
 `;
 
-// Main container for the modal content
 const ModalContentContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -76,10 +69,6 @@ const ModalContentContainer = styled.div`
   max-height: 80vh;
 `;
 
-/**
- * RequesterModal component for displaying detailed information about a requester,
- * including their HITs and TurkerView ratings.
- */
 const RequesterModal: React.FC<RequesterModalProps> = ({
   isOpen,
   onClose,
@@ -99,7 +88,6 @@ const RequesterModal: React.FC<RequesterModalProps> = ({
     setIsFavorite(favoriteRequesters.some((r) => r.id === requesterId));
   }, [favoriteRequesters, requesterId]);
 
-  // Retrieve hits related to the requester and their loading/error states
   const {
     hits,
     loading: hitsLoading,
@@ -111,7 +99,6 @@ const RequesterModal: React.FC<RequesterModalProps> = ({
     error: state.hits.error,
   }));
 
-  // Retrieve the number of columns and the function to set the columns for the HitList in the modal
   const requesterModalColumns = useStore(
     (state) => state.config.requesterModalColumns
   );
@@ -119,21 +106,18 @@ const RequesterModal: React.FC<RequesterModalProps> = ({
     (state) => state.config.setRequesterModalColumns
   );
 
-  // Retrieve TurkerView information for the requester
   const { requesters } = useTurkerView([requesterId]);
   const requester = requesters[requesterId];
 
-  // Handle blocking the requester and closing the modal
   const handleBlockRequester = () => {
     blockRequester(requesterId);
     onClose();
   };
 
   const handleToggleFavorite = () => {
-    toggleFavoriteRequester(requesterId, requester?.requester_name || "");
+    toggleFavoriteRequester(requesterId, requester?.requester_name || hits[0]?.requester_name || "");
   };
 
-  // Map of icons for different TurkerView ratings
   const iconMap = {
     faDollar: <IconCurrencyDollar size={16} />,
     faThumbsODown: <IconThumbDown size={16} />,
@@ -141,7 +125,6 @@ const RequesterModal: React.FC<RequesterModalProps> = ({
     faClockO: <IconClock size={16} />,
   };
 
-  // Render function for displaying information items with labels and values
   const renderInfoItem = (
     label: string,
     value: string | null,
@@ -165,9 +148,19 @@ const RequesterModal: React.FC<RequesterModalProps> = ({
       <ModalContentContainer>
         <ScrollableContent>
           <Stack gap={theme.spacing.md}>
-            <Stack align="center" gap={theme.spacing.xs}>
-              <RequesterName>{requester?.requester_name}</RequesterName>
+            <Stack align="center" gap={theme.spacing.xxs}>
+              <RequesterName>{requester?.requester_name || hits[0]?.requester_name || "Unknown Requester"}</RequesterName>
               <RequesterId>ID: {requesterId}</RequesterId>
+              {hits[0]?.requesterInfo?.taskApprovalRate && (
+                <Badge
+                  variant="filled"
+                  color={parseFloat(hits[0].requesterInfo.taskApprovalRate.replace(/[^0-9.]/g, '') || "0") >= 99 ? "green" : parseFloat(hits[0].requesterInfo.taskApprovalRate.replace(/[^0-9.]/g, '') || "0") >= 95 ? "yellow" : "red"}
+                  size="lg"
+                  mt="xs"
+                >
+                  MTurk Approval: {hits[0].requesterInfo.taskApprovalRate}
+                </Badge>
+              )}
             </Stack>
 
             {requester && (
@@ -207,13 +200,13 @@ const RequesterModal: React.FC<RequesterModalProps> = ({
             {hits.length > 0 ? (
               <HitList
                 hits={hits}
-                title={`Hits from ${requester?.requester_name}`}
+                title={`Hits from ${requester?.requester_name || hits[0]?.requester_name}`}
                 hideRequester
                 columns={requesterModalColumns}
                 setColumns={setRequesterModalColumns}
               />
             ) : (
-              !hitsLoading && <Text>No HITs found for this requester.</Text>
+              !hitsLoading && <Text ta="center" mt="xl">No HITs found in current session for this requester.</Text>
             )}
           </Stack>
         </ScrollableContent>

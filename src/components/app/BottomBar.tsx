@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { FaBan, FaChartBar, FaCog, FaPause, FaPlay } from "react-icons/fa";
+import { FaPause, FaPlay } from "react-icons/fa";
 import styled from "@emotion/styled";
-import { Tooltip } from "@mantine/core";
+import { Tooltip, Menu, Text } from "@mantine/core";
+import { IconMenu, IconSettings, IconChartBar, IconBan } from "@tabler/icons-react";
 import SettingsModal from "../modals/SettingsModal";
 import DashboardModal from "../modals/DashboardModal";
 import BlockedRequestersModal from "../modals/BlockedRequestersModal";
 import { useStore } from "../../hooks";
 import HitSpoonerLogo from "./HitSpoonerLogo";
 import { keyframes, useTheme } from "@emotion/react";
-import packageJson from "../../../package.json"; // Import the version from package.json
+
 
 /**
  * Keyframes for alternating fade between two messages.
@@ -31,14 +32,15 @@ const fadeAlternate = keyframes`
 const BottomBarContainer = styled.div<{ minimal?: boolean }>`
   bottom: 0;
   width: 100%;
-  background-color: ${(props) => props.theme.colors.primary[1]};
-  padding: ${(props) => props.theme.spacing.xxs};
-  border-top: 2px solid ${(props) => props.theme.colors.primary[0]};
+  background: linear-gradient(180deg, ${(props) => props.theme.colors.primary[2]} 0%, ${(props) => props.theme.colors.primary[1]} 100%);
+  padding: 8px 16px;
+  border-top: 1px solid ${(props) => props.theme.colors.primary[3]};
   display: flex;
   justify-content: space-between;
   align-items: center;
   z-index: 1000;
   position: relative;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 
   ${(props) =>
     props.minimal &&
@@ -65,17 +67,24 @@ const IconButton = styled.div<{ paused?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
   color: ${(props) =>
     props.paused
       ? props.theme.colors.secondary[7]
-      : props.theme.colors.primary[8]};
+      : props.theme.colors.primary[7]};
+  background: ${(props) => props.theme.colors.primary[0]};
 
   &:hover {
     transform: scale(1.1);
-    color: ${(props) => props.theme.colors.primary[8]};
+    background: ${(props) => props.theme.colors.primary[2]};
+    color: ${(props) => props.theme.colors.primary[9]};
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 `;
 
@@ -88,6 +97,7 @@ const PauseText = styled.div`
   display: flex;
   align-items: center;
   animation: ${fadeAlternate} 6s infinite;
+  animation-fill-mode: both;
   padding-top: 10%;
 `;
 
@@ -110,11 +120,12 @@ const EarningsPanel = styled.div`
   padding-left: ${(props) => props.theme.spacing.xs};
   padding-right: ${(props) => props.theme.spacing.xs};
   font-weight: bold;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
 `;
 
-/**
- * Styled text for the earnings display.
- */
 const EarningsText = styled.div`
   font-size: ${(props) => props.theme.fontSizes.xl};
   color: ${(props) => props.theme.other.hitRewardColor};
@@ -122,14 +133,13 @@ const EarningsText = styled.div`
   width: 100%;
 `;
 
-/**
- * Styled text for the version information.
- */
-const VersionText = styled.div`
+const PendingText = styled.div`
   font-size: ${(props) => props.theme.fontSizes.xs};
-  color: ${(props) => props.theme.colors.primary[7]};
-  margin-top: ${(props) => props.theme.spacing.xxs};
+  color: ${(props) => props.theme.colors.primary[6]};
 `;
+
+
+
 
 /**
  * Properties for the BottomBar component.
@@ -157,6 +167,9 @@ const BottomBar: React.FC<IBottomBarProps> = ({ minimal }) => {
   );
   const isPaused = useStore((state) => state.paused);
   const togglePause = useStore((state) => state.togglePause);
+  const queue = useStore((state) => state.queue);
+
+  const pendingEarnings = queue.reduce((sum, a) => sum + (a.project.monetary_reward?.amount_in_dollars || 0), 0);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -184,39 +197,55 @@ const BottomBar: React.FC<IBottomBarProps> = ({ minimal }) => {
           <HitSpoonerLogo />
         ) : (
           <>
-            <div style={{ display: "flex", gap: "10px" }}>
-              <Tooltip
-                label="Settings"
-                withArrow
-                position="top"
-                styles={customTooltipStyles}
+            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+              <Menu
+                shadow="md"
+                width={200}
+                position="top-start"
+                styles={{
+                  dropdown: {
+                    backgroundColor: theme.colors.primary[0],
+                    border: `1px solid ${theme.colors.primary[3]}`,
+                  },
+                  item: {
+                    color: theme.colors.primary[9],
+                    '&[data-hovered]': {
+                      backgroundColor: theme.colors.primary[2],
+                    },
+                  },
+                }}
               >
-                <IconButton onClick={toggleSettingsModal}>
-                  <FaCog size={24} />
-                </IconButton>
-              </Tooltip>
+                <Menu.Target>
+                  <Tooltip label="Menu" withArrow position="top" styles={customTooltipStyles}>
+                    <IconButton>
+                      <IconMenu size={24} />
+                    </IconButton>
+                  </Tooltip>
+                </Menu.Target>
 
-              <Tooltip
-                label="Dashboard"
-                withArrow
-                position="top"
-                styles={customTooltipStyles}
-              >
-                <IconButton onClick={toggleDashboardModal}>
-                  <FaChartBar size={24} />
-                </IconButton>
-              </Tooltip>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    onClick={toggleSettingsModal}
+                    leftSection={<IconSettings size={18} />}
+                  >
+                    Settings
+                  </Menu.Item>
+                  <Menu.Item
+                    onClick={toggleDashboardModal}
+                    leftSection={<IconChartBar size={18} />}
+                  >
+                    Dashboard
+                  </Menu.Item>
+                  <Menu.Item
+                    onClick={toggleBlockedModal}
+                    leftSection={<IconBan size={18} />}
+                  >
+                    Blocked Requesters
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
 
-              <Tooltip
-                label="Blocked Requesters"
-                withArrow
-                position="top"
-                styles={customTooltipStyles}
-              >
-                <IconButton onClick={toggleBlockedModal}>
-                  <FaBan size={24} />
-                </IconButton>
-              </Tooltip>
+              <div style={{ width: "1px", height: "24px", backgroundColor: theme.colors.primary[3] }} />
 
               <Tooltip
                 label={
@@ -250,6 +279,9 @@ const BottomBar: React.FC<IBottomBarProps> = ({ minimal }) => {
             </CenteredLogoContainer>
             <EarningsPanel>
               <EarningsText>${availableEarnings.toFixed(2)}</EarningsText>
+              {pendingEarnings > 0 && (
+                <PendingText>+${pendingEarnings.toFixed(2)} pending</PendingText>
+              )}
             </EarningsPanel>
           </>
         )}
@@ -271,4 +303,4 @@ const BottomBar: React.FC<IBottomBarProps> = ({ minimal }) => {
   );
 };
 
-export default BottomBar;
+export default React.memo(BottomBar);

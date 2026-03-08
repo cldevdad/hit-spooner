@@ -1,3 +1,3 @@
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("HitSpooner Extension Installed");
+  // Extension installed successfully
 });

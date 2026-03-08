@@ -75,6 +75,8 @@ export const blueTheme: MantineThemeOverride = {
     negativeButtonHoverColor: "#C53030", // Darker red for hover state
     negativeButtonActiveColor: "#9B2C2C", // Even darker red for active state
     favoriteIcon: "#38B2AC", // Cool teal color for favorite icon
+    scoopIconColor: "#38B2AC", // Teal for scoop icon
+    shovelIconColor: "#38B2AC", // Teal for shovel icon
     turkerView: {
       danger: "#E53E3E", // Red for 'danger' class
       warning: "#DD6B20", // Orange for 'warning' class
