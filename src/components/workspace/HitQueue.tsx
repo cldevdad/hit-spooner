@@ -192,7 +192,7 @@ const QueueRow: React.FC<QueueRowProps> = React.memo(({
         {assignment.project.title}
       </TitleCell>
       <RewardCell>
-        {assignment.project.monetary_reward?.amount_in_dollars?.toFixed(2) ?? "$0.00"}
+        ${assignment.project.monetary_reward?.amount_in_dollars?.toFixed(2) ?? "0.00"}
       </RewardCell>
       <StyledTableCell>
         <Tooltip

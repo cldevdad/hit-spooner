@@ -202,11 +202,12 @@ const unlockAudio = (): void => {
   if (isAudioUnlocked) return;
 
   try {
-        // This ensures AudioContext creation happens after user gesture
+    // This ensures AudioContext creation happens after user gesture
     const ctx = createAudioContext();
     
     if (ctx.state === "suspended") {
       ctx.resume().then(() => {
+        // Only set isAudioUnlocked to true after successfully resuming
         isAudioUnlocked = true;
         audioContext = ctx; // Store the context for reuse
         masterGain = ctx.createGain(); // Create and store master gain
@@ -215,7 +216,7 @@ const unlockAudio = (): void => {
         preloadSounds(); // Now safe to preload
         processSoundQueue();
       }).catch(() => {
-        isAudioUnlocked = true;
+        // Don't set isAudioUnlocked to true on failure - keep it false so we can retry
         audioContext = ctx; // Store the context for reuse
         masterGain = ctx.createGain(); // Create and store master gain
         masterGain.connect(ctx.destination);
@@ -224,6 +225,7 @@ const unlockAudio = (): void => {
         processSoundQueue();
       });
     } else {
+      // AudioContext is already running
       isAudioUnlocked = true;
       audioContext = ctx; // Store the context for reuse
       masterGain = ctx.createGain(); // Create and store master gain
@@ -233,7 +235,7 @@ const unlockAudio = (): void => {
       processSoundQueue();
     }
   } catch {
-    isAudioUnlocked = true;
+    // Don't set isAudioUnlocked to true on exception - keep it false so we can retry
   }
 };
 

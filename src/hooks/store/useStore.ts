@@ -17,18 +17,18 @@ import { useIndexedDb, loadHits as loadHitsFromDb } from "../useIndexedDb";
 import { IHitSpoonerStoreState } from "./IHitSpoonerStoreState";
 import { LocalStorageKeys } from "./LocalStorageKeys";
 
-// Helper selectors for queue earnings calculations
-export const useTotalEarnings = (state: any) =>
-  state.queue.reduce((total: number, assignment: any) => {
+// Helper selectors for queue earnings calculations with proper typing
+export const useTotalEarnings = (state: { queue: IHitAssignment[] }): number =>
+  state.queue.reduce((total: number, assignment: IHitAssignment) => {
     return total + (assignment.project?.monetary_reward?.amount_in_dollars || 0);
   }, 0);
 
-export const useTotalEarningsPerHour = (state: any) => {
-  const totalReward = state.queue.reduce((total: number, assignment: any) => {
+export const useTotalEarningsPerHour = (state: { queue: IHitAssignment[] }): number => {
+  const totalReward = state.queue.reduce((total: number, assignment: IHitAssignment) => {
     return total + (assignment.project?.monetary_reward?.amount_in_dollars || 0);
   }, 0);
 
-  const totalDurationHours = state.queue.reduce((total: number, assignment: any) => {
+  const totalDurationHours = state.queue.reduce((total: number, assignment: IHitAssignment) => {
     const durationSeconds = assignment.project?.assignment_duration_in_seconds || 0;
     return total + (durationSeconds / 3600); // Convert to hours
   }, 0);
@@ -36,16 +36,16 @@ export const useTotalEarningsPerHour = (state: any) => {
   return totalDurationHours > 0 ? totalReward / totalDurationHours : 0;
 };
 
-export const useAverageRewardPerHit = (state: any) => {
-  const totalReward = state.queue.reduce((total: number, assignment: any) => {
+export const useAverageRewardPerHit = (state: { queue: IHitAssignment[] }): number => {
+  const totalReward = state.queue.reduce((total: number, assignment: IHitAssignment) => {
     return total + (assignment.project?.monetary_reward?.amount_in_dollars || 0);
   }, 0);
 
   return state.queue.length > 0 ? totalReward / state.queue.length : 0;
 };
 
-export const useTotalDuration = (state: any) => {
-  return state.queue.reduce((total: number, assignment: any) => {
+export const useTotalDuration = (state: { queue: IHitAssignment[] }): number => {
+  return state.queue.reduce((total: number, assignment: IHitAssignment) => {
     const durationSeconds = assignment.project?.assignment_duration_in_seconds || 0;
     return total + durationSeconds;
   }, 0);
@@ -360,6 +360,13 @@ export const useStore = create<IHitSpoonerStoreState>((set, get) => {
         );
 
         return { blockedRequesters: updatedBlockedRequesters };
+      });
+    },
+
+    clearBlockedRequesters: () => {
+      set((state) => {
+        localStorage.setItem(LocalStorageKeys.BlockedRequesters, "[]");
+        return { blockedRequesters: [] };
       });
     },
 

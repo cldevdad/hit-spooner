@@ -18,7 +18,7 @@ const BlockedRequestersModal: React.FC<BlockedRequestersModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { blockedRequesters, blockRequester } = useStore();
+  const { blockedRequesters, blockRequester, clearBlockedRequesters } = useStore();
   const [requesterToUnblock, setRequesterToUnblock] = React.useState<string | null>(null);
   const [unblockAllConfirm, setUnblockAllConfirm] = React.useState(false);
 
@@ -45,8 +45,8 @@ const BlockedRequestersModal: React.FC<BlockedRequestersModalProps> = ({
   };
 
   const confirmUnblockAll = () => {
-    localStorage.setItem(LocalStorageKeys.BlockedRequesters, "[]");
-    window.location.reload();
+    clearBlockedRequesters();
+    setUnblockAllConfirm(false);
   };
 
   const cancelUnblock = () => {

@@ -51,6 +51,11 @@ export interface IHitSpoonerStoreState {
   blockRequester: (requesterId: string) => void;
 
   /**
+   * Function to clear all blocked requesters.
+   */
+  clearBlockedRequesters: () => void;
+
+  /**
    * Function to fetch and update the HITs data.
    */
   fetchAndUpdateHits: () => void;

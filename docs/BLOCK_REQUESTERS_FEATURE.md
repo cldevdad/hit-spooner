@@ -13,7 +13,7 @@ When you block a requester, their requester ID is added to your blocked list. Th
 
 Key behaviors:
 - **Automatic Filtering:** All HITs from blocked requesters are filtered out during HIT fetching
-- **Instant生效:** Blocking takes effect immediately on the next HIT refresh
+- **Instant Effect:** Blocking takes effect immediately on the next HIT refresh
 - **Persistence:** Blocked requesters are saved in localStorage
 - **Toggle Functionality:** The `blockRequester` function toggles between block/unblock
 
