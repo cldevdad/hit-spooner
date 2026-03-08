@@ -31,13 +31,12 @@ interface SettingsModalProps {
 }
 
 const updateIntervalOptions = [
-  { value: "400", label: "Aggressive (0.4s)" },
-  { value: "600", label: "Very Fast (0.6s)" },
-  { value: "800", label: "Fast (0.8s)" },
-  { value: "1000", label: "Normal (1s)" },
-  { value: "1500", label: "Balanced (1.5s)" },
-  { value: "2000", label: "Safe (2s)" },
-  { value: "3000", label: "Conservative (3s)" },
+  { value: "600", label: "Very Fast (0.6s) - Optimized for speed" },
+  { value: "800", label: "Fast (0.8s) - Recommended for best performance" },
+  { value: "1000", label: "Normal (1s) - Balanced speed and reliability" },
+  { value: "1200", label: "Conservative (1.2s) - Enhanced reliability" },
+  { value: "1500", label: "Safe (1.5s) - Maximum stability" },
+  { value: "2000", label: "Very Safe (2s) - Minimal server load" },
 ];
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
